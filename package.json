@@ -1,0 +1,23 @@
+{
+  "name": "peepd",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "live-server --port=3000 --open=index.html --ignore=node_modules",
+    "dev": "live-server --port=3000 --open=index.html --ignore=node_modules",
+    "format": "prettier --write \"**/*.{html,css,js}\" --ignore-path .gitignore",
+    "lint": "eslint js/**/*.js",
+    "lint:fix": "eslint js/**/*.js --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Community-powered social reputation platform",
+  "devDependencies": {
+    "eslint": "^10.1.0",
+    "live-server": "^1.2.2",
+    "prettier": "^3.8.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.3"
+  }
+}

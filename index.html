@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peepd — Your Social Reputation Score</title>
+  <meta name="description" content="The world's first community-powered social reputation platform. See what the world really thinks." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <span class="nav__logo-text">Peepd</span>
+      </a>
+      <div class="nav__search">
+        <i class="fas fa-search nav__search-icon"></i>
+        <input type="text" placeholder="Search for someone…" id="navSearch" autocomplete="off" />
+      </div>
+      <ul class="nav__links">
+        <li><a href="index.html" class="nav__link">Explore</a></li>
+        <li><a href="profile.html" class="nav__link">How It Works</a></li>
+        <li><a href="write-review.html" class="nav__link">Write a Review</a></li>
+      </ul>
+      <div class="nav__actions">
+        <a href="#" class="btn btn--ghost btn--sm">Sign In</a>
+        <a href="#" class="btn btn--primary btn--sm">Join Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Hero ───────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__bg">
+      <div class="hero__grid"></div>
+      <div class="hero__glow-1"></div>
+      <div class="hero__glow-2"></div>
+    </div>
+    <div class="container">
+      <div class="hero__content">
+        <div class="hero__eyebrow">
+          <span class="hero__eyebrow-dot"></span>
+          Community-Powered · Accuracy-Verified · Always Honest
+        </div>
+        <h1 class="hero__title">
+          What does the world<br/>
+          <span class="gradient-text">really think of you?</span>
+        </h1>
+        <p class="hero__subtitle">
+          Peepd is the first social platform where your reputation is built entirely
+          by others — colleagues, friends, and peers who know you best.
+          No self-promotion. Only truth.
+        </p>
+        <div class="hero__search">
+          <i class="fas fa-user-circle hero__search-icon"></i>
+          <input type="text" placeholder="Search a name, username, or email…" id="heroSearch" autocomplete="off" />
+          <button class="hero__search-btn" onclick="heroSearchSubmit()">Search</button>
+        </div>
+        <p class="hero__search-hint">
+          <i class="fas fa-lock" style="font-size:0.72rem; margin-right:4px;"></i>
+          You cannot search or review yourself
+        </p>
+        <div class="hero__stats">
+          <div class="hero__stat">
+            <div class="hero__stat-value">2.4M+</div>
+            <div class="hero__stat-label">Profiles Reviewed</div>
+          </div>
+          <div class="hero__stat">
+            <div class="hero__stat-value">18.3M+</div>
+            <div class="hero__stat-label">Reviews Submitted</div>
+          </div>
+          <div class="hero__stat">
+            <div class="hero__stat-value">94.2%</div>
+            <div class="hero__stat-label">Community Accuracy Rate</div>
+          </div>
+          <div class="hero__stat">
+            <div class="hero__stat-value">0</div>
+            <div class="hero__stat-label">Self-Reviews Allowed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Live Ticker ────────────────────────────────────────── -->
+  <div class="ticker" style="position:relative;">
+    <div class="ticker__label"><span class="ticker__dot"></span> LIVE</div>
+    <div class="ticker__track-wrapper">
+      <div class="ticker__track">
+        <div class="ticker__item"><span class="ticker__item-name">Jordan K.</span><span class="ticker__item-sep">·</span>reviewed by <span class="ticker__item-name">Marcus T.</span><span class="ticker__item-sep">·</span>Score<span class="ticker__item-score"> ↑ 847</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Priya S.</span><span class="ticker__item-sep">·</span>new review from <span class="ticker__item-name">Alex W.</span><span class="ticker__item-sep">·</span><span class="ticker__item-score">96% accurate</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">David C.</span><span class="ticker__item-sep">·</span>Reliability rated <span class="ticker__item-score">5⭐</span><span class="ticker__item-sep">·</span>by 3 reviewers</div>
+        <div class="ticker__item"><span class="ticker__item-name">Aisha M.</span><span class="ticker__item-sep">·</span>Score milestone<span class="ticker__item-score"> 900 — Elite</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Tom H.</span><span class="ticker__item-sep">·</span>review verified<span class="ticker__item-sep">·</span>Accuracy<span class="ticker__item-score"> 89%</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Nadia R.</span><span class="ticker__item-sep">·</span>Work Ethic rated<span class="ticker__item-score"> 9.4/10</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Chris B.</span><span class="ticker__item-sep">·</span>Honesty score<span class="ticker__item-score"> ↑ 12pts</span></div>
+        <!-- Duplicate for seamless loop -->
+        <div class="ticker__item"><span class="ticker__item-name">Jordan K.</span><span class="ticker__item-sep">·</span>reviewed by <span class="ticker__item-name">Marcus T.</span><span class="ticker__item-sep">·</span>Score<span class="ticker__item-score"> ↑ 847</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Priya S.</span><span class="ticker__item-sep">·</span>new review from <span class="ticker__item-name">Alex W.</span><span class="ticker__item-sep">·</span><span class="ticker__item-score">96% accurate</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">David C.</span><span class="ticker__item-sep">·</span>Reliability rated <span class="ticker__item-score">5⭐</span><span class="ticker__item-sep">·</span>by 3 reviewers</div>
+        <div class="ticker__item"><span class="ticker__item-name">Aisha M.</span><span class="ticker__item-sep">·</span>Score milestone<span class="ticker__item-score"> 900 — Elite</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Tom H.</span><span class="ticker__item-sep">·</span>review verified<span class="ticker__item-sep">·</span>Accuracy<span class="ticker__item-score"> 89%</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Nadia R.</span><span class="ticker__item-sep">·</span>Work Ethic rated<span class="ticker__item-score"> 9.4/10</span></div>
+        <div class="ticker__item"><span class="ticker__item-name">Chris B.</span><span class="ticker__item-sep">·</span>Honesty score<span class="ticker__item-score"> ↑ 12pts</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── How It Works ───────────────────────────────────────── -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header fade-up">
+        <div class="section-label">The Process</div>
+        <h2>Reputation built by the people who know you</h2>
+        <p>Every score is 100% peer-generated. No self-editing, no gaming the system — just honest, community-verified truth.</p>
+      </div>
+      <div class="steps">
+        <div class="step fade-up fade-up-delay-1">
+          <div class="step__number">01</div>
+          <div class="step__icon"><i class="fas fa-search"></i></div>
+          <div class="step__title">Find Someone</div>
+          <p class="step__desc">Search for any person by name or email. Every person has a public profile that only others can build.</p>
+        </div>
+        <div class="step fade-up fade-up-delay-2">
+          <div class="step__number">02</div>
+          <div class="step__icon"><i class="fas fa-star"></i></div>
+          <div class="step__title">Rate &amp; Review</div>
+          <p class="step__desc">Rate them across six core attributes — Work Ethic, Reliability, Honesty, Character, Intelligence, and Social Skills.</p>
+        </div>
+        <div class="step fade-up fade-up-delay-3">
+          <div class="step__number">03</div>
+          <div class="step__icon"><i class="fas fa-shield-halved"></i></div>
+          <div class="step__title">Community Verifies</div>
+          <p class="step__desc">The community votes on every review's accuracy. Disputed reviews are flagged and weighted down. False reviews are removed.</p>
+        </div>
+        <div class="step fade-up fade-up-delay-4">
+          <div class="step__number">04</div>
+          <div class="step__icon"><i class="fas fa-chart-line"></i></div>
+          <div class="step__title">Score Updates</div>
+          <p class="step__desc">Your Peep Score updates in real time. The more verified reviews, the more accurate — and trusted — your score becomes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Featured Profiles ──────────────────────────────────── -->
+  <section class="featured">
+    <div class="container">
+      <div class="section-header fade-up">
+        <div class="section-label">Trending Profiles</div>
+        <h2>Most reviewed this week</h2>
+        <p>Real people. Real reviews. Real scores built entirely by their peers.</p>
+      </div>
+      <div class="profiles-grid">
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-1">
+          <div class="profile-card__top">
+            <div class="avatar avatar-1">AM</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Alex Morgan</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> San Francisco, CA &nbsp;·&nbsp; Product Design</div>
+              <div class="mini-score">
+                <span class="mini-score__value">847</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:84.7%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Reliable</span><span class="attr-pill">Creative</span><span class="attr-pill">Honest</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>42</span> reviews &nbsp;·&nbsp; 96% accurate</div>
+            <span class="badge badge--tier-elite">🔮 Elite</span>
+          </div>
+        </a>
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-2">
+          <div class="profile-card__top">
+            <div class="avatar avatar-2">PS</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Priya Sharma</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> Austin, TX &nbsp;·&nbsp; Software Engineering</div>
+              <div class="mini-score">
+                <span class="mini-score__value">912</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:91.2%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Brilliant</span><span class="attr-pill">Dedicated</span><span class="attr-pill">Trustworthy</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>67</span> reviews &nbsp;·&nbsp; 98% accurate</div>
+            <span class="badge badge--tier-legendary">🏆 Legendary</span>
+          </div>
+        </a>
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-3">
+          <div class="profile-card__top">
+            <div class="avatar avatar-3">JK</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Jordan Kim</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> New York, NY &nbsp;·&nbsp; Marketing</div>
+              <div class="mini-score">
+                <span class="mini-score__value">723</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:72.3%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Charismatic</span><span class="attr-pill">Strategic</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>29</span> reviews &nbsp;·&nbsp; 88% accurate</div>
+            <span class="badge badge--tier-trusted">🔵 Trusted</span>
+          </div>
+        </a>
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-4">
+          <div class="profile-card__top">
+            <div class="avatar avatar-4">NR</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Nadia Reeves</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> Chicago, IL &nbsp;·&nbsp; Finance</div>
+              <div class="mini-score">
+                <span class="mini-score__value">881</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:88.1%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Sharp</span><span class="attr-pill">Professional</span><span class="attr-pill">Reliable</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>38</span> reviews &nbsp;·&nbsp; 93% accurate</div>
+            <span class="badge badge--tier-elite">🔮 Elite</span>
+          </div>
+        </a>
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-1">
+          <div class="profile-card__top">
+            <div class="avatar avatar-5">CB</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Carlos Bravo</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> Miami, FL &nbsp;·&nbsp; Entrepreneurship</div>
+              <div class="mini-score">
+                <span class="mini-score__value">604</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:60.4%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Ambitious</span><span class="attr-pill">Bold</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>18</span> reviews &nbsp;·&nbsp; 81% accurate</div>
+            <span class="badge badge--tier-established">⚡ Established</span>
+          </div>
+        </a>
+        <a href="profile.html" class="card card--glow profile-card fade-up fade-up-delay-2">
+          <div class="profile-card__top">
+            <div class="avatar avatar-6">TH</div>
+            <div class="profile-card__info">
+              <div class="profile-card__name">Taylor Hayes</div>
+              <div class="profile-card__meta"><i class="fas fa-map-pin"></i> Seattle, WA &nbsp;·&nbsp; UX Research</div>
+              <div class="mini-score">
+                <span class="mini-score__value">778</span>
+                <div class="mini-score__bar"><div class="mini-score__fill" style="width:77.8%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card__attrs">
+            <span class="attr-pill">Empathetic</span><span class="attr-pill">Analytical</span><span class="attr-pill">Calm</span>
+          </div>
+          <div class="profile-card__footer">
+            <div class="profile-card__review-count"><span>31</span> reviews &nbsp;·&nbsp; 91% accurate</div>
+            <span class="badge badge--tier-trusted">🔵 Trusted</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Accuracy Section ───────────────────────────────────── -->
+  <section class="accuracy-section">
+    <div class="container">
+      <div class="accuracy-grid">
+        <div class="accuracy-visual fade-up">
+          <div class="accuracy-clock-card">
+            <div class="clock-display">
+              <div class="clock-ring">
+                <svg viewBox="0 0 80 80" width="80" height="80">
+                  <circle class="clock-ring__track" cx="40" cy="40" r="32"/>
+                  <circle class="clock-ring__fill" cx="40" cy="40" r="32" stroke-dasharray="201.06" stroke-dashoffset="20.1"/>
+                </svg>
+                <div class="clock-ring__label">
+                  <span class="clock-ring__pct">90%</span>
+                  <span style="font-size:0.6rem; color:var(--text-muted);">accurate</span>
+                </div>
+              </div>
+              <div class="clock-info">
+                <div class="clock-info__title">Community Accuracy Verdict</div>
+                <div class="clock-info__sub">Based on 127 community votes · Posted 3 days ago</div>
+              </div>
+            </div>
+            <blockquote style="font-size:0.875rem; color:var(--text-secondary); line-height:1.7; margin-bottom:20px; border-left:2px solid var(--border-accent); padding-left:16px;">
+              "Jordan is one of the most reliable people I've ever worked with. In four years as colleagues, she never missed a deadline and always went above what was asked. Her integrity is unmatched."
+            </blockquote>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <span class="badge badge--accurate"><i class="fas fa-circle-check"></i> Highly Accurate</span>
+              <span style="font-size:0.75rem; color:var(--text-muted);">114 agreed · 13 disputed</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px;">Was this review accurate?</div>
+            <div class="accuracy-votes">
+              <button class="vote-btn vote-yes" onclick="castVote(this,'yes')"><i class="fas fa-thumbs-up"></i> Yes, accurate</button>
+              <button class="vote-btn vote-no"  onclick="castVote(this,'no')"><i class="fas fa-thumbs-down"></i> Disputed</button>
+            </div>
+          </div>
+        </div>
+        <div class="accuracy-text fade-up fade-up-delay-2">
+          <div class="section-label">The Accuracy Engine</div>
+          <h2>Every review is clocked for truth</h2>
+          <p>Reviews don't just sit there — the community actively validates them. Every vote shifts the Accuracy Score, and low-accuracy reviews are automatically downweighted so your Peep Score always reflects honest, validated opinions.</p>
+          <p>Our algorithm cross-references multiple reviews from different people. The more corroboration a review gets, the more it influences your score.</p>
+          <div class="accuracy-feature-list">
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--green"><i class="fas fa-circle-check"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>Verified Reviews Carry More Weight</h4>
+                <p>Reviews confirmed accurate by 10+ voters are boosted in the algorithm.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--amber"><i class="fas fa-triangle-exclamation"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>Disputed Reviews Are Flagged</h4>
+                <p>When a review falls below 60% accuracy, it's flagged and its score contribution is reduced.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--red"><i class="fas fa-ban"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>False Reviews Are Removed</h4>
+                <p>Reviews confirmed as false by community consensus are permanently removed and the reviewer is penalised.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Score Tiers ─────────────────────────────────────────── -->
+  <section style="background:var(--bg-surface); padding:80px 0;">
+    <div class="container">
+      <div class="section-header fade-up">
+        <div class="section-label">Score Tiers</div>
+        <h2>Your reputation, quantified</h2>
+        <p>Peep Scores range from 0 to 1000. Every point is earned — never bought, never self-assigned.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;" class="fade-up">
+        <div class="card" style="padding:22px; text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:10px;">👻</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#94A3B8;">Phantom</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">0 – 200</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">No verified reviews yet</div>
+        </div>
+        <div class="card" style="padding:22px; text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:10px;">🌱</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#FCD34D;">Emerging</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">201 – 400</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">Building reputation</div>
+        </div>
+        <div class="card" style="padding:22px; text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:10px;">⚡</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#93C5FD;">Established</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">401 – 600</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">Decent peer-verified rep</div>
+        </div>
+        <div class="card" style="padding:22px; text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:10px;">🔵</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#60A5FA;">Trusted</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">601 – 800</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">Well-reviewed &amp; reliable</div>
+        </div>
+        <div class="card" style="padding:22px; text-align:center;">
+          <div style="font-size:1.5rem; margin-bottom:10px;">🔮</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#C4B5FD;">Elite</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">801 – 950</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">Highly respected peers</div>
+        </div>
+        <div class="card" style="padding:22px; text-align:center; border-color:rgba(16,185,129,0.3);">
+          <div style="font-size:1.5rem; margin-bottom:10px;">🏆</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; color:#6EE7B7;">Legendary</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">951 – 1000</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; line-height:1.5;">Pinnacle of reputation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ────────────────────────────────────────────────── -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-section__inner fade-up">
+        <div class="section-label" style="margin-bottom:16px;">Get Started</div>
+        <h2>Discover your <span class="gradient-text">Peep Score</span></h2>
+        <p>Create a profile and invite your network. See the reviews come in.<br/>Your reputation is already being built — you just can't see it yet.</p>
+        <div class="cta-actions">
+          <a href="#" class="btn btn--primary btn--lg"><i class="fas fa-user-plus"></i> Create My Profile</a>
+          <a href="profile.html" class="btn btn--secondary btn--lg"><i class="fas fa-eye"></i> View a Demo Profile</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="nav__logo" style="display:inline-flex; margin-bottom:12px;">
+            <div class="nav__logo-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <span class="nav__logo-text">Peepd</span>
+          </a>
+          <p>The world's first community-powered social reputation platform. Honest scores built by real people — never by algorithms alone.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="index.html">Explore</a></li>
+            <li><a href="profile.html">View Profile</a></li>
+            <li><a href="write-review.html">Write a Review</a></li>
+            <li><a href="#">Leaderboard</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">Accuracy Engine</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Review Guidelines</a></li>
+            <li><a href="#">Report Abuse</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2026 Peepd Inc. All rights reserved. Reviews are peer-generated and do not reflect the views of Peepd.</p>
+        <div class="footer__bottom-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
