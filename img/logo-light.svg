@@ -1,17 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 112">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 195 260">
   <!--
-    Stem right edge = x:30.
-    Bowl outer r=26, center cx=50 → outer left edge = 24.
-    24 < 30 → bowl overlaps stem by 6px, intersecting stem at y≈23 and y≈57.
-    That creates TWO join points (upper & lower shoulder) — exactly how a real 'p' is drawn.
-    Bowl inner r=11, inner left = 39 → 9px clear of stem right (30). No hole in stem.
+    STROKE-BASED approach — ring and stem share identical stroke-width.
+    Stem centerline x = cx - r = 107 - 72 = 35.
+    This places:
+      stem left  edge = 35 - 11 = 24  = circle outer-left (107 - 72 - 11 = 24) ✓
+      stem right edge = 35 + 11 = 46  = circle inner-left (107 - 72 + 11 = 46) ✓
+    Stem exits/enters ring flush — no gap, no overlap into the hole.
   -->
-  <!-- Full-height stem -->
-  <rect x="4" y="4" width="26" height="104" rx="13" fill="#161616"/>
-  <!-- Bowl: outer r=26, inner r=11 — left side overlaps stem creating fluid join -->
-  <path fill-rule="evenodd" fill="#161616"
-    d="M 24,40 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0
-       M 39,40 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0"/>
+  <!-- Descender stem -->
+  <line x1="35" y1="82" x2="35" y2="248"
+        stroke="#161616" stroke-width="22" stroke-linecap="round"/>
+  <!-- Ring -->
+  <circle cx="107" cy="82" r="72"
+          fill="none" stroke="#161616" stroke-width="22"/>
   <!-- Orange dot -->
-  <circle cx="50" cy="40" r="7" fill="#E05527"/>
+  <circle cx="107" cy="82" r="23" fill="#E05527"/>
 </svg>
