@@ -1,4 +1,23 @@
+# Dependencies
 node_modules/
-.DS_Store
-*.log
+
+# Environment / secrets — NEVER commit these
 .env
+.env.*
+!.env.example
+*.pem
+*service_account*.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Supabase local dev state (not needed in repo)
+supabase/.branches/
+supabase/.temp/

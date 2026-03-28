@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+
+# Git
+.git/
+.gitignore
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Local dev only
+*.env
+.env*
+!.env.example
+
+# Test / lint / format
+.eslintrc*
+.prettierrc*
+
+# Docs
+*.md
+supabase-schema.sql
