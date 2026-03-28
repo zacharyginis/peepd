@@ -266,3 +266,8 @@ create policy "Authenticated users can submit disputes"
 create policy "Users can view their own disputes"
   on public.review_disputes for select
   using (auth.uid() = reporter_id);
+
+-- ── Profile extra fields (safe to run on existing DBs) ───────────────────────
+alter table public.profiles add column if not exists website      text;
+alter table public.profiles add column if not exists industry     text;
+alter table public.profiles add column if not exists linkedin_url text;

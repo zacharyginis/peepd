@@ -45,17 +45,23 @@ async function loadSupabase() {
     _updateMyProfile              = mod.updateMyProfile;
     _submitReviewDispute          = mod.submitReviewDispute;
 
-    // Listen for OAuth callback on the write-review page
-    if (document.getElementById('socialGate')) {
-      _supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          const provider = session.user?.app_metadata?.provider;
-          if (provider === 'facebook' || provider === 'linkedin_oidc') {
+    // Listen for OAuth callbacks on all pages
+    _supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const provider = session.user?.app_metadata?.provider;
+        if (provider === 'facebook' || provider === 'linkedin_oidc') {
+          if (document.getElementById('socialGate')) {
             await handleSocialOAuthCallback(session);
           }
         }
-      });
-    }
+        // Refresh the nav user menu on every page after sign-in
+        initNavUserMenu().catch(() => {});
+        // On my-profile page, reload profile data once the session is ready
+        if (document.getElementById('myProfileContent')) {
+          loadMyProfilePage().catch(() => {});
+        }
+      }
+    });
   } catch (e) {
     console.warn('Supabase module failed to load — running in demo mode.', e);
   }
@@ -1305,6 +1311,20 @@ function openEditProfileModal() {
   if (!modal) return;
   const errEl = document.getElementById('epError');
   if (errEl) errEl.style.display = 'none';
+
+  // Avatar color picker — highlight the user's current choice
+  const currentClass = window._myProfileRecord?.avatar_class || 'avatar-1';
+  const picker = document.getElementById('avatarPicker');
+  if (picker) {
+    picker.querySelectorAll('.avatar-pick').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.class === currentClass);
+      btn.onclick = () => {
+        picker.querySelectorAll('.avatar-pick').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+    });
+  }
+
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1334,9 +1354,15 @@ async function saveProfileEdits(e) {
   if (errEl) errEl.style.display = 'none';
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving…'; }
 
+  const website   = document.getElementById('epWebsite')?.value.trim();
+  const industry  = document.getElementById('epIndustry')?.value;
+  const picker    = document.getElementById('avatarPicker');
+  const avatarCls = picker?.querySelector('.avatar-pick.selected')?.dataset.class
+                 || window._myProfileRecord?.avatar_class || 'avatar-1';
+
   const parts    = name.split(/\s+/).filter(Boolean);
   const initials = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
-  const updates  = { full_name: name, initials, title: title||null, company: company||null, location: location||null, bio: bio||null };
+  const updates  = { full_name: name, initials, title: title||null, company: company||null, location: location||null, bio: bio||null, website: website||null, industry: industry||null, avatar_class: avatarCls };
 
   try {
     const profileId = window._myProfileRecord?.id;
@@ -1356,6 +1382,25 @@ async function saveProfileEdits(e) {
       fill('abLocation', updated.location);
       const avatarEl = document.getElementById('mpAvatar');
       if (avatarEl) avatarEl.className = `avatar ${updated.avatar_class || 'avatar-1'} avatar-xl`;
+      // Update nav avatar initials too
+      document.querySelectorAll('.nav__user-avatar').forEach(el => { if (!el.querySelector('img')) el.textContent = updated.initials; });
+      // Website
+      const wsEl = g('mpWebsite'); const wsSpan = g('mpWebsiteSpan');
+      if (wsSpan) {
+        if (updated.website) { if (wsEl) { wsEl.href = updated.website; wsEl.textContent = updated.website; } wsSpan.style.display = ''; }
+        else wsSpan.style.display = 'none';
+      }
+      // Industry
+      const indEl = g('mpIndustry'); const indSpan = g('mpIndustrySpan');
+      if (indSpan) {
+        if (updated.industry) { if (indEl) indEl.textContent = updated.industry; indSpan.style.display = ''; }
+        else indSpan.style.display = 'none';
+      }
+      fill('abIndustry', updated.industry || '—');
+      const wsAbEl = g('abWebsite');
+      if (wsAbEl) wsAbEl.innerHTML = updated.website
+        ? `<a href="${updated.website}" target="_blank" rel="noopener" style="color:var(--purple);word-break:break-all;">${updated.website}</a>`
+        : '—';
     }
     closeEditProfileModal();
     showToast('Profile updated!', 'success');
@@ -1410,7 +1455,17 @@ async function loadMyProfilePage() {
   set('mpBio',       profile.bio      || 'No bio yet. Click Edit Profile to add one.');
   if (profile.created_at) set('mpJoined', new Date(profile.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}));
 
-  // Tier badge
+  // Industry & website in hero meta
+  const wsEl = g('mpWebsite'); const wsSpan = g('mpWebsiteSpan');
+  if (wsSpan) {
+    if (profile.website) { if (wsEl) { wsEl.href = profile.website; wsEl.textContent = profile.website; } wsSpan.style.display = ''; }
+    else wsSpan.style.display = 'none';
+  }
+  const indEl = g('mpIndustry'); const indSpan = g('mpIndustrySpan');
+  if (indSpan) {
+    if (profile.industry) { if (indEl) indEl.textContent = profile.industry; indSpan.style.display = ''; }
+    else indSpan.style.display = 'none';
+  }
   const tierBadge = g('mpTierBadge');
   const tierEmoji = { Phantom:'👻',Emerging:'🌱',Established:'⚡',Trusted:'🔵',Elite:'🔮',Legendary:'🏆' };
   if (tierBadge && profile.tier) tierBadge.textContent = `${tierEmoji[profile.tier]||''} ${profile.tier} Tier`;
@@ -1443,6 +1498,11 @@ async function loadMyProfilePage() {
   set('abLocation',    profile.location || '—');
   set('abReviewCount', profile.review_count || 0);
   if (profile.created_at) set('abJoined', new Date(profile.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}));
+  set('abIndustry', profile.industry || '—');
+  const wsAbEl = g('abWebsite');
+  if (wsAbEl) wsAbEl.innerHTML = profile.website
+    ? `<a href="${profile.website}" target="_blank" rel="noopener" style="color:var(--purple);word-break:break-all;">${profile.website}</a>`
+    : '—';
 
   // Linked account
   const prov = session.user.app_metadata?.provider;
@@ -1461,6 +1521,8 @@ async function loadMyProfilePage() {
   ep('epCompany',  profile.company);
   ep('epLocation', profile.location);
   ep('epBio',      profile.bio);
+  ep('epWebsite',  profile.website);
+  ep('epIndustry', profile.industry);
 
   // Show content
   if (loading) loading.style.display = 'none';
@@ -1788,7 +1850,12 @@ async function connectWithOAuth(provider) {
     return;
   }
   try {
-    await _signInWithOAuthProvider(provider);
+    // On write-review page: stay on current page so the social gate can process the callback.
+    // On all other pages: redirect to My Profile after successful sign-in.
+    const redirectTo = document.getElementById('socialGate')
+      ? null
+      : `${window.location.origin}/my-profile`;
+    await _signInWithOAuthProvider(provider, redirectTo);
     // Browser will redirect — nothing runs after this
   } catch (e) {
     showToast('Sign-in failed: ' + e.message, 'error');

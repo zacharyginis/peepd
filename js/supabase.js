@@ -203,7 +203,7 @@ export async function saveSocialConnection({ profile_id, platform, handle, follo
  * Sign in via OAuth (facebook or linkedin_oidc).
  * Redirects the browser to the provider login page.
  */
-export async function signInWithOAuthProvider(provider) {
+export async function signInWithOAuthProvider(provider, overrideRedirectTo = null) {
   const scopeMap = {
     facebook:      'public_profile,email,user_friends',
     linkedin_oidc: 'openid,profile,email',
@@ -212,7 +212,7 @@ export async function signInWithOAuthProvider(provider) {
     provider,
     options: {
       scopes:     scopeMap[provider] || '',
-      redirectTo: window.location.origin + window.location.pathname,
+      redirectTo: overrideRedirectTo || (window.location.origin + window.location.pathname),
     },
   });
   if (error) throw error;
