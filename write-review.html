@@ -352,56 +352,37 @@
       <div class="social-gate__icon">
         <i class="fas fa-shield-halved"></i>
       </div>
-      <h2>Sign in to Verify Your Reach</h2>
+      <h2>Sign in to Verify Your Identity</h2>
       <p>
-        To keep Peepd trusted and spam-free, everyone must sign in with a social account
-        that has <strong>500+ connections or friends</strong>.
-        Your connection count is fetched <em>automatically</em> — no manual entry needed.
+        To keep Peepd trusted and spam-free, everyone must sign in with a verified social account.
+        We confirm your account is real &amp; active — no manual entry needed.
       </p>
       <div class="social-gate__platforms">
         <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
           <i class="fab fa-linkedin"></i>
           <span>Continue with LinkedIn</span>
-          <span class="social-platform-btn__sub">Auto-verifies your connections</span>
+          <span class="social-platform-btn__sub">Verify with your LinkedIn account</span>
         </button>
         <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
           <i class="fab fa-facebook"></i>
           <span>Continue with Facebook</span>
-          <span class="social-platform-btn__sub">Auto-verifies your friends</span>
+          <span class="social-platform-btn__sub">Verify with your Facebook account</span>
         </button>
       </div>
       <p class="social-gate__note">
         <i class="fas fa-lock"></i>
-        We only read your connection count — your data is never stored publicly or shared.
+        We verify your account is real — your data is never stored publicly or shared.
       </p>
     </div>
 
-    <!-- State 2: Loading (OAuth returned, fetching count) -->
+    <!-- State 2: Loading (OAuth returned, verifying account) -->
     <div class="social-gate__inner sg-center" id="sgStateLoading" style="display:none;">
       <i class="fas fa-circle-notch fa-spin" style="font-size:2.8rem; color:var(--purple); margin-bottom:24px;"></i>
       <h2>Verifying your account…</h2>
-      <p id="sgLoadingText">Fetching your connection count — just a second.</p>
+      <p id="sgLoadingText">Confirming your account — just a second.</p>
     </div>
 
-    <!-- State 3: Account verified but count unavailable (API restriction) -->
-    <div class="social-gate__inner" id="sgStateManual" style="display:none;">
-      <div class="social-gate__icon" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4);">
-        <i class="fas fa-circle-check" style="color:var(--green);"></i>
-      </div>
-      <h2 id="sgManualTitle">Account Verified</h2>
-      <p id="sgManualDesc">Your account is verified as real, but we couldn't auto-fetch your connection count due to API restrictions. Please enter it below.</p>
-      <label style="display:block; text-align:left; font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;" id="sgManualLabel">Number of connections</label>
-      <input type="number" id="sgManualCount" class="social-input" placeholder="e.g. 847" min="0" />
-      <div id="sgManualError" class="social-error" style="display:none;"></div>
-      <button class="btn btn--primary" style="width:100%; margin-top:4px;" onclick="submitManualCount()">
-        <i class="fas fa-check"></i> Confirm &amp; Continue
-      </button>
-      <button class="btn btn--ghost btn--sm" style="width:100%; margin-top:8px;" onclick="resetSocialGate()">
-        <i class="fas fa-arrow-left"></i> Try a different account
-      </button>
-    </div>
-
-    <!-- State 4: Count too low -->
+    <!-- State 3: Count confirmed too low (only shown when API returns verified count < 500) -->
     <div class="social-gate__inner sg-center" id="sgStateInsufficient" style="display:none;">
       <div class="social-gate__icon" style="background:rgba(239,68,68,0.15); border-color:rgba(239,68,68,0.4);">
         <i class="fas fa-circle-xmark" style="color:var(--red);"></i>
