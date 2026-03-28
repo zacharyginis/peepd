@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — Peepd</title>
+  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+</head>
+<body class="profile-page">
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-icon">
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+        </div>
+        <span class="nav__logo-text">Peepd</span>
+      </a>
+      <div class="nav__search">
+        <i class="fas fa-search nav__search-icon"></i>
+        <input type="text" placeholder="Search for someone…" id="navSearch" autocomplete="off" />
+      </div>
+      <ul class="nav__links">
+        <li><a href="index.html" class="nav__link">Explore</a></li>
+        <li><a href="profile.html" class="nav__link">How It Works</a></li>
+        <li><a href="write-review.html" class="nav__link">Write a Review</a></li>
+      </ul>
+      <div class="nav__actions" id="navActions">
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openWaitlistModal()">Join Waitlist</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Loading state ──────────────────────────────────────── -->
+  <div class="my-profile-loading" id="myProfileLoading">
+    <i class="fas fa-circle-notch fa-spin"></i>
+    Loading your profile…
+  </div>
+
+  <!-- ── Not signed in ──────────────────────────────────────── -->
+  <div id="myProfileNoSession" style="display:none; min-height:60vh; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:60px 24px; text-align:center;">
+    <i class="fas fa-user-lock" style="font-size:3rem; color:var(--border-accent); margin-bottom:8px;"></i>
+    <h2>Sign in to view your profile</h2>
+    <p style="color:var(--text-muted); max-width:360px; line-height:1.7;">Connect with LinkedIn or Facebook to see and manage your Peepd profile, dispute reviews, and track your Peep Score.</p>
+    <button class="btn btn--primary btn--lg" onclick="openAuthModal('signin')"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+  </div>
+
+  <!-- ── Profile Hero (shown after load) ───────────────────── -->
+  <section class="profile-hero" id="myProfileContent" style="display:none;">
+    <div class="container">
+      <div class="profile-hero__layout">
+        <div class="profile-hero__left">
+          <div class="avatar avatar-1 avatar-xl" id="mpAvatar"><span id="mpInitials">?</span></div>
+          <div class="profile-hero__identity">
+            <div class="profile-hero__badges">
+              <span class="badge badge--verified"><i class="fas fa-circle-check"></i> Peepd Member</span>
+              <span id="mpTierBadge" class="badge" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.15);">— Phantom</span>
+            </div>
+            <h1 class="profile-hero__name" id="mpName">Your Name</h1>
+            <div class="profile-hero__meta">
+              <span><i class="fas fa-briefcase"></i> <span id="mpTitle">—</span></span>
+              <span><i class="fas fa-building"></i> <span id="mpCompany">—</span></span>
+              <span><i class="fas fa-map-pin"></i> <span id="mpLocation">—</span></span>
+              <span><i class="fas fa-calendar"></i> Joined <span id="mpJoined">—</span></span>
+            </div>
+            <p class="profile-hero__summary" id="mpBio">No bio yet. Click Edit Profile to add one.</p>
+            <div class="profile-hero__actions">
+              <button class="btn btn--primary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
+              <button class="btn btn--secondary" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share Profile</button>
+              <button class="btn btn--ghost" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+            </div>
+          </div>
+        </div>
+        <div class="profile-hero__right">
+          <div class="score-gauge-wrapper" id="mpScoreGauge">
+            <svg class="score-gauge__svg" viewBox="0 0 200 200" width="200" height="200">
+              <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7C3AED" />
+                  <stop offset="50%" stop-color="#06B6D4" />
+                  <stop offset="100%" stop-color="#10B981" />
+                </linearGradient>
+              </defs>
+              <circle class="score-gauge__track" cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" stroke-dasharray="534.07" stroke-dashoffset="133.52" transform="rotate(135 100 100)" />
+              <circle id="gaugeArc" cx="100" cy="100" r="85" fill="none" stroke="url(#scoreGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="534.07" stroke-dashoffset="534.07" transform="rotate(135 100 100)" />
+            </svg>
+            <div class="score-gauge__center">
+              <div class="score-gauge__value" id="scoreValue">0</div>
+              <div class="score-gauge__label">PEEP SCORE</div>
+              <div class="score-gauge__tier">Phantom</div>
+            </div>
+          </div>
+          <div class="score-trend-badge">
+            <i class="fas fa-chart-line"></i> Your live peer score
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Profile Body ───────────────────────────────────────── -->
+  <div class="container" id="myProfileBody" style="display:none; padding-top:32px; padding-bottom:80px;">
+    <div class="profile-body">
+
+      <!-- Tabs -->
+      <div class="profile-tabs-nav">
+        <button class="profile-tab active" data-tab="reviews">
+          <i class="fas fa-star"></i> Reviews <span class="tab-count">0</span>
+        </button>
+        <button class="profile-tab" data-tab="about">
+          <i class="fas fa-user"></i> About
+        </button>
+        <button class="profile-tab" data-tab="stats">
+          <i class="fas fa-chart-bar"></i> Stats
+        </button>
+      </div>
+
+      <div class="profile-layout">
+
+        <!-- ── Main ──────────────────────────────────────────── -->
+        <div class="profile-main">
+
+          <!-- REVIEWS TAB -->
+          <div class="profile-tab-panel active" id="tab-reviews">
+            <div class="reviews-header">
+              <h3 style="font-family:'Sora',sans-serif; font-size:1rem; font-weight:700;">Reviews About You</h3>
+              <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="recent">Recent</button>
+              </div>
+            </div>
+            <div id="myReviewsList">
+              <!-- Reviews rendered by JS -->
+            </div>
+          </div>
+
+          <!-- ABOUT TAB -->
+          <div class="profile-tab-panel" id="tab-about">
+            <div class="about-grid">
+              <div class="about-field"><label>Full Name</label><p id="abName">—</p></div>
+              <div class="about-field"><label>Title</label><p id="abTitle">—</p></div>
+              <div class="about-field"><label>Company</label><p id="abCompany">—</p></div>
+              <div class="about-field"><label>Location</label><p id="abLocation">—</p></div>
+              <div class="about-field"><label>On Peepd Since</label><p id="abJoined">—</p></div>
+              <div class="about-field"><label>Reviews Received</label><p id="abReviewCount">—</p></div>
+            </div>
+            <div style="margin-top:20px;">
+              <button class="btn btn--secondary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile Info</button>
+            </div>
+          </div>
+
+          <!-- STATS TAB -->
+          <div class="profile-tab-panel" id="tab-stats">
+            <div class="stats-grid">
+              <div class="stat-card"><div class="stat-card__value" id="stReviewCount">0</div><div class="stat-card__label">Total Reviews</div></div>
+              <div class="stat-card"><div class="stat-card__value" id="stAccuracy">—</div><div class="stat-card__label">Avg Accuracy</div></div>
+              <div class="stat-card"><div class="stat-card__value" id="stScore">0</div><div class="stat-card__label">Peep Score</div></div>
+              <div class="stat-card"><div class="stat-card__value" id="stTier">—</div><div class="stat-card__label">Tier</div></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <aside class="profile-sidebar">
+
+          <!-- Score Breakdown -->
+          <div class="card" style="padding:24px; margin-bottom:16px;">
+            <h3 class="sidebar-heading"><i class="fas fa-sliders"></i> Score Breakdown</h3>
+            <div class="category-bars">
+              <div class="category-bar"><div class="category-bar__label"><span>Work Ethic</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--purple" data-width="0" style="width:0%"></div></div></div>
+              <div class="category-bar"><div class="category-bar__label"><span>Reliability</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--cyan" data-width="0" style="width:0%"></div></div></div>
+              <div class="category-bar"><div class="category-bar__label"><span>Honesty</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--green" data-width="0" style="width:0%"></div></div></div>
+              <div class="category-bar"><div class="category-bar__label"><span>Character</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--purple" data-width="0" style="width:0%"></div></div></div>
+              <div class="category-bar"><div class="category-bar__label"><span>Intelligence</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--cyan" data-width="0" style="width:0%"></div></div></div>
+              <div class="category-bar"><div class="category-bar__label"><span>Social Skills</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--green" data-width="0" style="width:0%"></div></div></div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="card" style="padding:24px; margin-bottom:16px;">
+            <h3 class="sidebar-heading"><i class="fas fa-bolt"></i> Quick Stats</h3>
+            <div class="sidebar-stats">
+              <div class="sidebar-stat"><span class="sidebar-stat__label">Total Reviews</span><span class="sidebar-stat__val" id="sbReviewCount">—</span></div>
+              <div class="sidebar-stat"><span class="sidebar-stat__label">Accuracy Rate</span><span class="sidebar-stat__val text-green" id="sbAccuracy">—</span></div>
+              <div class="sidebar-stat"><span class="sidebar-stat__label">Peep Score</span><span class="sidebar-stat__val" id="sbScore">—</span></div>
+              <div class="sidebar-stat"><span class="sidebar-stat__label">Current Tier</span><span class="sidebar-stat__val" id="sbTier">—</span></div>
+            </div>
+          </div>
+
+          <!-- Linked Account -->
+          <div class="account-card">
+            <h3><i class="fas fa-link" style="color:var(--cyan);"></i> Linked Account</h3>
+            <div class="account-card__item" id="mpAccountProvider">—</div>
+            <div class="account-card__item"><i class="fas fa-envelope" style="color:var(--text-muted);"></i> <span id="mpAccountEmail">—</span></div>
+            <button class="account-card__btn account-card__btn--secondary" onclick="shareProfileUrl()">
+              <i class="fas fa-share-nodes"></i> Share My Profile
+            </button>
+            <button class="account-card__btn account-card__btn--danger" onclick="doSignOut()">
+              <i class="fas fa-arrow-right-from-bracket"></i> Sign Out
+            </button>
+          </div>
+
+          <!-- Self-Review Lockout -->
+          <div class="lockout-card">
+            <div class="lockout-card__icon"><i class="fas fa-lock"></i></div>
+            <h4>Self-Review Protected</h4>
+            <p>You cannot write a review on your own profile. All reviews are submitted exclusively by other people who know you.</p>
+            <div class="lockout-card__badge"><i class="fas fa-shield-halved"></i> Self-reviews blocked at DB level</div>
+          </div>
+
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer style="background:var(--bg-surface); border-top:1px solid var(--border-subtle); padding:24px 0; text-align:center;">
+    <div class="container">
+      <p style="font-size:0.78rem; color:var(--text-muted);">© 2026 Peepd Inc. · <a href="index.html" style="color:var(--purple);">Home</a> · <a href="write-review.html" style="color:var(--purple);">Write a Review</a> · <a href="privacy-policy.html" style="color:var(--purple);">Privacy</a> · <a href="terms-of-service.html" style="color:var(--purple);">Terms</a></p>
+    </div>
+  </footer>
+
+  <!-- ── Edit Profile Modal ──────────────────────────────────── -->
+  <div class="modal-overlay" id="editProfileModal" onclick="closeEditProfileModal(event)">
+    <div class="modal edit-profile-modal">
+      <button class="auth-modal__close" onclick="closeEditProfileModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="edit-profile-modal__header">
+        <h2><i class="fas fa-user-pen" style="color:var(--purple); margin-right:8px;"></i> Edit Profile</h2>
+        <p>Update your public profile. Changes are visible to everyone on Peepd.</p>
+      </div>
+      <form id="editProfileForm" onsubmit="saveProfileEdits(event)" novalidate>
+        <div class="ep-field-row">
+          <div class="ep-field">
+            <label class="ep-label" for="epName">Full Name <span style="color:var(--purple);">*</span></label>
+            <input type="text" id="epName" class="social-input" placeholder="Jane Smith" autocomplete="name" />
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="epTitle">Job Title</label>
+            <input type="text" id="epTitle" class="social-input" placeholder="Product Designer" />
+          </div>
+        </div>
+        <div class="ep-field-row">
+          <div class="ep-field">
+            <label class="ep-label" for="epCompany">Company</label>
+            <input type="text" id="epCompany" class="social-input" placeholder="Acme Inc." />
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="epLocation">Location</label>
+            <input type="text" id="epLocation" class="social-input" placeholder="San Francisco, CA" />
+          </div>
+        </div>
+        <div class="ep-field">
+          <label class="ep-label" for="epBio">Bio <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(max 280 chars)</span></label>
+          <textarea id="epBio" class="ep-textarea" placeholder="Tell people a bit about yourself…" maxlength="280"></textarea>
+        </div>
+        <div id="epError" class="ep-error" style="display:none;"></div>
+        <button type="submit" class="btn btn--primary" style="width:100%;" id="epSaveBtn">
+          <i class="fas fa-check"></i> Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Dispute Review Modal ────────────────────────────────── -->
+  <div class="modal-overlay" id="disputeModal" onclick="closeDisputeModal(event)">
+    <div class="modal dispute-modal">
+      <button class="auth-modal__close" onclick="closeDisputeModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+
+      <!-- Form state -->
+      <div id="disputeStateForm">
+        <div class="dispute-modal__header">
+          <div class="dispute-modal__icon"><i class="fas fa-flag"></i></div>
+          <h2>Dispute This Review</h2>
+          <p>Tell us why this review is inaccurate or violates our guidelines. Our team reviews disputes within 48 hours.</p>
+        </div>
+        <form id="disputeForm" onsubmit="submitDisputeForm(event)" novalidate>
+          <div class="ep-field">
+            <label class="ep-label" for="disputeReason">Reason <span style="color:var(--purple);">*</span></label>
+            <select id="disputeReason" class="social-input">
+              <option value="">— Select a reason —</option>
+              <option value="false_info">False or inaccurate information</option>
+              <option value="mistaken_identity">Wrong person / mistaken identity</option>
+              <option value="harassment">Harassment or bullying</option>
+              <option value="spam">Spam or fake review</option>
+              <option value="privacy">Privacy violation</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="disputeDetails">Additional Context <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(optional)</span></label>
+            <textarea id="disputeDetails" class="ep-textarea" placeholder="Provide any details that help our team review this…" maxlength="500" style="min-height:80px;"></textarea>
+          </div>
+          <div id="disputeError" class="ep-error" style="display:none;"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%;" id="disputeSubmitBtn">
+            <i class="fas fa-flag"></i> Submit Dispute
+          </button>
+        </form>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:12px; text-align:center;">
+          <i class="fas fa-lock"></i> Disputes are fully confidential. We never reveal who disputed a review.
+        </p>
+      </div>
+
+      <!-- Success state -->
+      <div id="disputeStateSuccess" style="display:none; text-align:center; padding:8px 0;">
+        <div class="dispute-success-icon"><i class="fas fa-circle-check"></i></div>
+        <h2 style="margin-bottom:10px;">Dispute Submitted</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">We've received your dispute and will review it within 48 hours. You'll be notified if action is taken.</p>
+        <button class="btn btn--secondary" style="width:100%;" onclick="closeDisputeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Auth Modal ──────────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="auth-modal__logo"><img src="img/logo-light.svg" alt="Peepd" /></div>
+      <h2 id="authModalTitle">Sign in to Peepd</h2>
+      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')"><i class="fab fa-linkedin"></i><span>Continue with LinkedIn</span></button>
+        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')"><i class="fab fa-facebook"></i><span>Continue with Facebook</span></button>
+      </div>
+      <p class="auth-modal__note"><i class="fas fa-lock"></i> Your data is never shared. By continuing you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+    </div>
+  </div>
+
+  <!-- ── Waitlist Modal (needed for openWaitlistModal calls) ─── -->
+  <div class="modal-overlay" id="waitlistModal" onclick="closeWaitlistModal(event)">
+    <div class="modal waitlist-modal">
+      <button class="auth-modal__close" onclick="closeWaitlistModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div id="wlStateForm">
+        <div class="waitlist-modal__header">
+          <div class="waitlist-modal__icon"><i class="fas fa-list-ul"></i></div>
+          <h2>Join the Waitlist</h2>
+          <p>Be among the first to get access when Peepd opens to the public.</p>
+        </div>
+        <form id="waitlistForm" novalidate>
+          <div class="wl-field-row">
+            <div class="wl-field"><label class="wl-label" for="wlName">Full Name <span class="wl-required">*</span></label><input type="text" id="wlName" class="social-input" placeholder="Jane Smith" /></div>
+            <div class="wl-field"><label class="wl-label" for="wlEmail">Email <span class="wl-required">*</span></label><input type="email" id="wlEmail" class="social-input" placeholder="jane@example.com" /></div>
+          </div>
+          <div class="wl-field-row">
+            <div class="wl-field"><label class="wl-label" for="wlLinkedin">LinkedIn URL</label><input type="url" id="wlLinkedin" class="social-input" placeholder="https://linkedin.com/in/..." /></div>
+            <div class="wl-field"><label class="wl-label" for="wlBirthdate">Date of Birth <span class="wl-required">*</span></label><input type="date" id="wlBirthdate" class="social-input" /></div>
+          </div>
+          <div class="wl-field">
+            <label class="wl-label" for="wlSource">How did you find us? <span class="wl-required">*</span></label>
+            <select id="wlSource" class="social-input">
+              <option value="">— Select one —</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="twitter_x">X / Twitter</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="google">Google Search</option>
+              <option value="friend">A friend told me</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div id="wlError" class="wl-error" style="display:none;"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%; margin-top:4px;" id="wlSubmitBtn"><i class="fas fa-paper-plane"></i> Request Access</button>
+        </form>
+      </div>
+      <div id="wlStateSuccess" style="display:none; text-align:center; padding:8px 0;">
+        <div class="waitlist-modal__success-icon"><i class="fas fa-circle-check"></i></div>
+        <h2 style="margin-bottom:10px;">You're on the list! 🎉</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">We'll email <strong id="wlSuccessEmail"></strong> when we open up.</p>
+        <button class="btn btn--secondary" style="width:100%;" onclick="closeWaitlistModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=2"></script>
+</body>
+</html>

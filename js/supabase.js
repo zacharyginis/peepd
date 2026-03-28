@@ -289,6 +289,72 @@ export async function saveWaitlistEntry(entry) {
   return data;
 }
 
+/** Sign the current user out. */
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+/**
+ * Get the profile linked to the current auth user, or create one automatically.
+ * @param {object} user  supabase auth user object
+ */
+export async function getOrCreateMyProfile(user) {
+  const { data: existing, error: fe } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (fe) throw fe;
+  if (existing) return existing;
+
+  const raw      = (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User').trim();
+  const parts    = raw.split(/\s+/).filter(Boolean);
+  const initials = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  const avatarClasses = ['avatar-1','avatar-2','avatar-3','avatar-4','avatar-5','avatar-6'];
+  const avatarClass   = avatarClasses[Math.abs((user.id.charCodeAt(0) || 0) - 48) % 6];
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert([{ full_name: raw, initials, avatar_class: avatarClass, user_id: user.id }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update a profile's editable fields (RLS enforces only own profile).
+ * @param {string} profileId
+ * @param {{ full_name?: string, title?: string, company?: string, location?: string, bio?: string, initials?: string, avatar_class?: string }} updates
+ */
+export async function updateMyProfile(profileId, updates) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', profileId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Submit a dispute for a review.
+ * @param {string} reviewId
+ * @param {'false_info'|'mistaken_identity'|'harassment'|'spam'|'privacy'|'other'} reason
+ * @param {string} [details]
+ */
+export async function submitReviewDispute(reviewId, reason, details) {
+  const { data, error } = await supabase
+    .from('review_disputes')
+    .insert([{ review_id: reviewId, reason, details: details || null }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Verify a Didit session result via the Edge Function.
  * Returns { verified: boolean, status: string }

@@ -16,7 +16,8 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _signInWithOAuthProvider, _getAuthSession,
     _createDiditSession, _verifyDiditSession,
     _fetchLinkedInRecommendations,
-    _saveWaitlistEntry;
+    _saveWaitlistEntry,
+    _signOut, _getOrCreateMyProfile, _updateMyProfile, _submitReviewDispute;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -39,6 +40,10 @@ async function loadSupabase() {
     _verifyDiditSession           = mod.verifyDiditSession;
     _fetchLinkedInRecommendations = mod.fetchLinkedInRecommendations;
     _saveWaitlistEntry            = mod.saveWaitlistEntry;
+    _signOut                      = mod.signOut;
+    _getOrCreateMyProfile         = mod.getOrCreateMyProfile;
+    _updateMyProfile              = mod.updateMyProfile;
+    _submitReviewDispute          = mod.submitReviewDispute;
 
     // Listen for OAuth callback on the write-review page
     if (document.getElementById('socialGate')) {
@@ -78,6 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   injectAnimations();
   await loadSupabase();
   init();
+  initNavUserMenu().catch(e => console.warn('NavUserMenu:', e));
+  loadMyProfilePage().catch(e => console.warn('MyProfile:', e));
 });
 
 function init() {
@@ -1023,6 +1030,15 @@ window.applyLiPasteText      = applyLiPasteText;
 window.updateLiPasteCount    = updateLiPasteCount;
 window.openWaitlistModal     = openWaitlistModal;
 window.closeWaitlistModal    = closeWaitlistModal;
+window.toggleNavUserMenu     = toggleNavUserMenu;
+window.doSignOut             = doSignOut;
+window.shareProfileUrl       = shareProfileUrl;
+window.openDisputeModal      = openDisputeModal;
+window.closeDisputeModal     = closeDisputeModal;
+window.submitDisputeForm     = submitDisputeForm;
+window.openEditProfileModal  = openEditProfileModal;
+window.closeEditProfileModal = closeEditProfileModal;
+window.saveProfileEdits      = saveProfileEdits;
 
 // ─── Auth Modal ────────────────────────────────────────────────────────────────
 function openAuthModal(mode = 'signin') {
@@ -1120,6 +1136,421 @@ async function submitWaitlist(e) {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Access'; }
   }
 }
+
+// ─── Nav User Menu ─────────────────────────────────────────────────────────────
+async function initNavUserMenu() {
+  const actionsEl = document.getElementById('navActions');
+  if (!actionsEl) return;
+  if (!_getAuthSession) return;
+  let session;
+  try { session = await _getAuthSession(); } catch { return; }
+  if (!session) return;
+
+  const user      = session.user;
+  const meta      = user.user_metadata || {};
+  const name      = (meta.full_name || meta.name || user.email || 'Me').trim();
+  const firstName = name.split(' ')[0];
+  const initials  = name.split(/\s+/).filter(Boolean).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  const provider  = user.app_metadata?.provider || '';
+  const providerIcon = provider === 'linkedin_oidc'
+    ? '<i class="fab fa-linkedin" style="color:#0A66C2;font-size:0.85rem;"></i>'
+    : provider === 'facebook'
+    ? '<i class="fab fa-facebook" style="color:#1877F2;font-size:0.85rem;"></i>'
+    : '<i class="fas fa-user" style="font-size:0.85rem;"></i>';
+
+  // Ensure profile exists (create silently if first sign-in)
+  if (_getOrCreateMyProfile) {
+    _getOrCreateMyProfile(user).catch(() => {});
+  }
+
+  actionsEl.outerHTML = `
+    <div class="nav__user-menu" id="navUserMenu">
+      <button class="nav__user-btn" onclick="toggleNavUserMenu()">
+        <div class="nav__user-avatar">${initials}</div>
+        <span class="nav__user-name">${firstName}</span>
+        <i class="fas fa-chevron-down nav__user-caret" id="navUserCaret"></i>
+      </button>
+      <div class="nav__user-dropdown" id="navUserDropdown">
+        <div class="nav__user-dropdown-header">
+          <div class="nav__user-avatar nav__user-avatar--lg">${initials}</div>
+          <div>
+            <div class="nav__user-dropdown-name">${name}</div>
+            <div class="nav__user-dropdown-email">${providerIcon} ${user.email || provider}</div>
+          </div>
+        </div>
+        <a href="my-profile.html" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
+        <a href="my-profile.html" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='my-profile.html';"><i class="fas fa-pen"></i> Edit Profile</a>
+        <a href="write-review.html" class="nav__dropdown-item"><i class="fas fa-pen-to-square"></i> Write a Review</a>
+        <button class="nav__dropdown-item" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
+        <div class="nav__dropdown-divider"></div>
+        <button class="nav__dropdown-item nav__dropdown-item--danger" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+      </div>
+    </div>`;
+
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('navUserMenu');
+    if (menu && !menu.contains(e.target)) {
+      const dd = document.getElementById('navUserDropdown');
+      if (dd) dd.classList.remove('open');
+    }
+  });
+}
+
+function toggleNavUserMenu() {
+  const dd    = document.getElementById('navUserDropdown');
+  const caret = document.getElementById('navUserCaret');
+  if (!dd) return;
+  dd.classList.toggle('open');
+  if (caret) caret.style.transform = dd.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+async function doSignOut() {
+  try { if (_signOut) await _signOut(); } catch (e) { console.warn('Sign-out error:', e); }
+  ['peepd_social_session','peepd_id_session','peepd_reviewer_uid'].forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem('peepd_li_token');
+  window.location.href = 'index.html';
+}
+
+async function shareProfileUrl() {
+  const id  = window._myProfileRecord?.id;
+  const url = id
+    ? `${window.location.origin}/profile.html?id=${id}`
+    : window.location.origin;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Profile link copied!', 'success');
+  } catch {
+    prompt('Copy your profile link:', url);
+  }
+}
+
+function showToast(msg, type = 'info') {
+  let el = document.getElementById('peepd-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'peepd-toast';
+    el.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:0.875rem;font-weight:600;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  const isOk = type === 'success';
+  el.textContent = msg;
+  el.style.background = isOk ? 'rgba(16,185,129,0.15)' : 'rgba(224,85,39,0.15)';
+  el.style.border      = isOk ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(224,85,39,0.4)';
+  el.style.color       = isOk ? '#6EE7B7' : '#FFBF9B';
+  el.style.opacity     = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 2800);
+}
+
+// ─── Dispute Review Modal ──────────────────────────────────────────────────────
+let _disputeReviewId = null;
+
+function openDisputeModal(reviewId) {
+  _disputeReviewId = reviewId;
+  const modal = document.getElementById('disputeModal');
+  if (!modal) return;
+  document.getElementById('disputeStateForm').style.display    = '';
+  document.getElementById('disputeStateSuccess').style.display = 'none';
+  const errEl = document.getElementById('disputeError');
+  if (errEl) errEl.style.display = 'none';
+  const form = document.getElementById('disputeForm');
+  if (form) form.reset();
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDisputeModal(e) {
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('disputeModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  _disputeReviewId = null;
+}
+
+async function submitDisputeForm(e) {
+  if (e) e.preventDefault();
+  const reason    = document.getElementById('disputeReason')?.value;
+  const details   = document.getElementById('disputeDetails')?.value.trim();
+  const errEl     = document.getElementById('disputeError');
+  const submitBtn = document.getElementById('disputeSubmitBtn');
+
+  if (!reason) {
+    if (errEl) { errEl.textContent = 'Please select a reason.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…'; }
+
+  try {
+    if (_submitReviewDispute && _disputeReviewId) {
+      await _submitReviewDispute(_disputeReviewId, reason, details);
+    }
+    document.getElementById('disputeStateForm').style.display    = 'none';
+    document.getElementById('disputeStateSuccess').style.display = '';
+  } catch (err) {
+    const dup = err?.message?.includes('unique') || err?.message?.includes('duplicate');
+    if (errEl) {
+      errEl.textContent = dup ? 'You already disputed this review.' : 'Submit failed — please try again.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Dispute'; }
+  }
+}
+
+// ─── Edit Profile Modal ────────────────────────────────────────────────────────
+function openEditProfileModal() {
+  const modal = document.getElementById('editProfileModal');
+  if (!modal) return;
+  const errEl = document.getElementById('epError');
+  if (errEl) errEl.style.display = 'none';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditProfileModal(e) {
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('editProfileModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function saveProfileEdits(e) {
+  if (e) e.preventDefault();
+  const name     = document.getElementById('epName')?.value.trim();
+  const title    = document.getElementById('epTitle')?.value.trim();
+  const company  = document.getElementById('epCompany')?.value.trim();
+  const location = document.getElementById('epLocation')?.value.trim();
+  const bio      = document.getElementById('epBio')?.value.trim();
+  const errEl    = document.getElementById('epError');
+  const btn      = document.getElementById('epSaveBtn');
+
+  if (!name) {
+    if (errEl) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving…'; }
+
+  const parts    = name.split(/\s+/).filter(Boolean);
+  const initials = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  const updates  = { full_name: name, initials, title: title||null, company: company||null, location: location||null, bio: bio||null };
+
+  try {
+    const profileId = window._myProfileRecord?.id;
+    if (_updateMyProfile && profileId) {
+      const updated = await _updateMyProfile(profileId, updates);
+      window._myProfileRecord = updated;
+      const fill = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || ''; };
+      fill('mpName',     updated.full_name);
+      fill('mpTitle',    updated.title);
+      fill('mpCompany',  updated.company);
+      fill('mpLocation', updated.location);
+      fill('mpBio',      updated.bio || 'No bio yet.');
+      fill('mpInitials', updated.initials);
+      fill('abName',     updated.full_name);
+      fill('abTitle',    updated.title);
+      fill('abCompany',  updated.company);
+      fill('abLocation', updated.location);
+      const avatarEl = document.getElementById('mpAvatar');
+      if (avatarEl) avatarEl.className = `avatar ${updated.avatar_class || 'avatar-1'} avatar-xl`;
+    }
+    closeEditProfileModal();
+    showToast('Profile updated!', 'success');
+  } catch (err) {
+    if (errEl) { errEl.textContent = 'Save failed — please try again.'; errEl.style.display = 'block'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Save Changes'; }
+  }
+}
+
+// ─── My Profile Page ──────────────────────────────────────────────────────────
+async function loadMyProfilePage() {
+  const content = document.getElementById('myProfileContent');
+  if (!content) return; // not on my-profile.html
+
+  const loading   = document.getElementById('myProfileLoading');
+  const noSession = document.getElementById('myProfileNoSession');
+  const body      = document.getElementById('myProfileBody');
+
+  let session;
+  try { session = _getAuthSession ? await _getAuthSession() : null; } catch { session = null; }
+
+  if (!session) {
+    if (loading)   loading.style.display   = 'none';
+    if (noSession) noSession.style.display = 'flex';
+    return;
+  }
+
+  let profile;
+  try {
+    profile = _getOrCreateMyProfile ? await _getOrCreateMyProfile(session.user) : null;
+  } catch (err) {
+    console.error('Profile load failed:', err);
+    if (loading) loading.style.display = 'none';
+    return;
+  }
+  if (!profile) { if (loading) loading.style.display = 'none'; return; }
+
+  window._myProfileRecord = profile;
+
+  // Fill hero
+  const g = (id) => document.getElementById(id);
+  const set = (id, val) => { const el = g(id); if (el) el.textContent = val || ''; };
+
+  const avatarEl = g('mpAvatar');
+  if (avatarEl) avatarEl.className = `avatar ${profile.avatar_class || 'avatar-1'} avatar-xl`;
+  set('mpInitials',  profile.initials || profile.full_name.slice(0,2).toUpperCase());
+  set('mpName',      profile.full_name);
+  set('mpTitle',     profile.title    || '—');
+  set('mpCompany',   profile.company  || '');
+  set('mpLocation',  profile.location || '');
+  set('mpBio',       profile.bio      || 'No bio yet. Click Edit Profile to add one.');
+  if (profile.created_at) set('mpJoined', new Date(profile.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}));
+
+  // Tier badge
+  const tierBadge = g('mpTierBadge');
+  const tierEmoji = { Phantom:'👻',Emerging:'🌱',Established:'⚡',Trusted:'🔵',Elite:'🔮',Legendary:'🏆' };
+  if (tierBadge && profile.tier) tierBadge.textContent = `${tierEmoji[profile.tier]||''} ${profile.tier} Tier`;
+
+  // Score gauge
+  const arc        = g('gaugeArc');
+  const scoreValue = g('scoreValue');
+  if (arc && scoreValue) animateGauge(arc, scoreValue, profile.peep_score || 0, 1000, GAUGE_CIRCUMFERENCE);
+  const tierLabel = document.querySelector('.score-gauge__tier');
+  if (tierLabel) tierLabel.textContent = profile.tier || 'Phantom';
+
+  // Stats + sidebar
+  set('stReviewCount', profile.review_count || 0);
+  set('stAccuracy',    profile.accuracy_rate ? `${Math.round(profile.accuracy_rate)}%` : '—');
+  set('stScore',       profile.peep_score || 0);
+  set('stTier',        profile.tier || 'Phantom');
+  set('sbReviewCount', profile.review_count || 0);
+  set('sbAccuracy',    profile.accuracy_rate ? `${Math.round(profile.accuracy_rate)}%` : '—');
+  set('sbScore',       profile.peep_score || 0);
+  set('sbTier',        profile.tier || 'Phantom');
+
+  // Tab count
+  const tabCount = document.querySelector('[data-tab="reviews"] .tab-count');
+  if (tabCount) tabCount.textContent = profile.review_count || 0;
+
+  // About tab
+  set('abName',        profile.full_name);
+  set('abTitle',       profile.title    || '—');
+  set('abCompany',     profile.company  || '—');
+  set('abLocation',    profile.location || '—');
+  set('abReviewCount', profile.review_count || 0);
+  if (profile.created_at) set('abJoined', new Date(profile.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}));
+
+  // Linked account
+  const prov = session.user.app_metadata?.provider;
+  const providerEl = g('mpAccountProvider');
+  if (providerEl) providerEl.innerHTML = prov === 'linkedin_oidc'
+    ? '<i class="fab fa-linkedin" style="color:#0A66C2;"></i> LinkedIn'
+    : prov === 'facebook'
+    ? '<i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook'
+    : '<i class="fas fa-user"></i> Social Account';
+  set('mpAccountEmail', session.user.email || '');
+
+  // Pre-fill edit modal
+  const ep = (id, val) => { const el = g(id); if (el) el.value = val || ''; };
+  ep('epName',     profile.full_name);
+  ep('epTitle',    profile.title);
+  ep('epCompany',  profile.company);
+  ep('epLocation', profile.location);
+  ep('epBio',      profile.bio);
+
+  // Show content
+  if (loading) loading.style.display = 'none';
+  content.style.display = '';
+  if (body) body.style.display = '';
+
+  // Animate bars
+  initProfileTabs();
+  initCategoryBars();
+  initAccuracyMeters();
+
+  // Load reviews
+  if (_getReviewsForProfile) {
+    try {
+      const reviews = await _getReviewsForProfile(profile.id);
+      renderMyReviews(reviews);
+    } catch (e) { console.warn('Reviews load failed:', e); }
+  }
+}
+
+function renderMyReviews(reviews) {
+  const list = g('myReviewsList');
+  if (!list) return;
+
+  if (!reviews || reviews.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:48px 24px;color:var(--text-muted);">
+        <i class="fas fa-star" style="font-size:2.5rem;margin-bottom:16px;display:block;opacity:0.25;"></i>
+        <p style="margin-bottom:20px;">No reviews yet. Share your profile and invite people who know you.</p>
+        <button class="btn btn--primary" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
+      </div>`;
+    return;
+  }
+
+  const catKeys   = ['rating_work_ethic','rating_reliability','rating_honesty','rating_character','rating_intelligence','rating_social_skills'];
+  const catLabels = ['Work Ethic','Reliability','Honesty','Character','Intelligence','Social Skills'];
+
+  list.innerHTML = reviews.map(r => {
+    const rated    = catKeys.filter(k => r[k] != null);
+    const avg      = rated.length ? rated.reduce((s,k) => s + r[k], 0) / rated.length : null;
+    const starFull = avg ? Math.round(avg) : 0;
+    const stars    = '★'.repeat(starFull) + '☆'.repeat(5 - starFull);
+    const accPct   = r.accuracy_pct != null ? Math.round(r.accuracy_pct) : null;
+    const accColor = accPct != null ? (accPct >= 80 ? 'var(--green)' : accPct >= 60 ? 'var(--amber)' : 'var(--red)') : 'var(--text-muted)';
+    const accClass = accPct != null ? (accPct >= 80 ? 'accuracy-meter__fill--green' : accPct >= 60 ? 'accuracy-meter__fill--amber' : 'accuracy-meter__fill--red') : '';
+    const rel      = r.relationship ? r.relationship.charAt(0).toUpperCase() + r.relationship.slice(1) : 'Reviewer';
+    const cats     = rated.slice(0,3).map(k => `<span class="cat-rating"><span class="cat-label">${catLabels[catKeys.indexOf(k)]}</span><span class="cat-val">${r[k]}.0</span></span>`).join('');
+    const text     = r.review_text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    return `
+      <div class="review-card">
+        <div class="review-card__header">
+          <div class="avatar avatar-2" style="width:40px;height:40px;font-size:0.8rem;flex-shrink:0;">?</div>
+          <div class="review-card__reviewer">
+            <div class="review-card__name">Anonymous Reviewer</div>
+            <div class="review-card__meta">${rel} · ${timeAgo(r.created_at)}</div>
+          </div>
+          <div class="review-card__stars">
+            <span class="stars-display">${stars}</span>
+            ${avg ? `<span style="font-size:0.8rem;color:var(--text-muted);margin-left:4px;">${avg.toFixed(1)}</span>` : ''}
+          </div>
+        </div>
+        <p class="review-card__text">&ldquo;${text}&rdquo;</p>
+        ${cats ? `<div class="review-card__cats">${cats}</div>` : ''}
+        ${accPct != null ? `
+        <div class="review-card__accuracy">
+          <div class="accuracy-meter"><div class="accuracy-meter__fill ${accClass}" data-width="${accPct}" style="width:0%"></div></div>
+          <span class="accuracy-pct" style="color:${accColor};">${accPct}% accurate</span>
+        </div>` : ''}
+        <div class="review-card__vote-dispute">
+          <div class="review-card__vote">
+            <span style="font-size:0.78rem;color:var(--text-muted);">Accurate?</span>
+            <button class="vote-btn vote-yes" onclick="castVote(this,'yes')"><i class="fas fa-thumbs-up"></i> Yes</button>
+            <button class="vote-btn vote-no" onclick="castVote(this,'no')"><i class="fas fa-thumbs-down"></i> No</button>
+          </div>
+          <button class="btn-dispute-review" onclick="openDisputeModal('${r.id}')">
+            <i class="fas fa-flag"></i> Dispute
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  setTimeout(() => {
+    list.querySelectorAll('.accuracy-meter__fill[data-width]').forEach(el => {
+      el.style.width = el.dataset.width + '%';
+    });
+  }, 300);
+}
+
+function g(id) { return document.getElementById(id); }
 
 // ─── ID Verification Gate (Didit) ───────────────────────────────────────────────────
 const ID_SESSION_KEY = 'peepd_id_session';

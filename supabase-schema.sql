@@ -245,3 +245,24 @@ create table if not exists public.waitlist (
 alter table public.waitlist enable row level security;
 create policy "Anyone can join waitlist"
   on public.waitlist for insert with check (true);
+
+-- ── Review Disputes ────────────────────────────────────────────────────────────
+create table if not exists public.review_disputes (
+  id          uuid primary key default uuid_generate_v4(),
+  created_at  timestamptz not null default now(),
+  review_id   uuid not null references public.reviews(id) on delete cascade,
+  reporter_id uuid references auth.users(id) on delete set null,
+  reason      text not null check (reason in (
+                 'false_info','mistaken_identity','harassment','spam','privacy','other')),
+  details     text,
+  status      text not null default 'pending'
+                check (status in ('pending','under_review','resolved')),
+  unique (review_id, reporter_id)
+);
+alter table public.review_disputes enable row level security;
+create policy "Authenticated users can submit disputes"
+  on public.review_disputes for insert
+  with check (auth.role() = 'authenticated');
+create policy "Users can view their own disputes"
+  on public.review_disputes for select
+  using (auth.uid() = reporter_id);
