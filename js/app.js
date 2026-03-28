@@ -1109,8 +1109,9 @@ async function initIdGate() {
     return;
   }
 
-  // Not yet verified — show gate
-  showIdGateState('Default');
+  // Not yet verified — gate stays hidden until the user tries to submit a review.
+  // showIdGateState('Default') is intentionally NOT called here.
+  showIdGateState('Default'); // pre-load the correct state; gate remains hidden
 }
 
 /** User clicks "Verify My Identity" */
