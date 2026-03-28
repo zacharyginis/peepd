@@ -1042,9 +1042,70 @@ window.shareProfileUrl       = shareProfileUrl;
 window.openDisputeModal      = openDisputeModal;
 window.closeDisputeModal     = closeDisputeModal;
 window.submitDisputeForm     = submitDisputeForm;
-window.openEditProfileModal  = openEditProfileModal;
-window.closeEditProfileModal = closeEditProfileModal;
-window.saveProfileEdits      = saveProfileEdits;
+window.openEditProfileModal      = openEditProfileModal;
+window.closeEditProfileModal     = closeEditProfileModal;
+window.saveProfileEdits          = saveProfileEdits;
+window.openRequestReviewModal    = openRequestReviewModal;
+window.closeRequestReviewModal   = closeRequestReviewModal;
+window.copyReviewLink            = copyReviewLink;
+window.requestReviewVia          = requestReviewVia;
+
+// ─── Request Reviews Modal ─────────────────────────────────────────────────────
+function openRequestReviewModal() {
+  const modal = document.getElementById('requestReviewModal');
+  if (!modal) return;
+  const profileId = window._myProfileRecord?.id;
+  const url = profileId
+    ? `${window.location.origin}/profile.html?id=${profileId}`
+    : window.location.origin;
+  const input = document.getElementById('rrProfileUrl');
+  if (input) input.value = url;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRequestReviewModal(e) {
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('requestReviewModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyReviewLink() {
+  const input = document.getElementById('rrProfileUrl');
+  if (!input) return;
+  const btn = document.getElementById('rrCopyBtn');
+  const reset = () => { if (btn) btn.innerHTML = '<i class="fas fa-copy"></i>'; };
+  const done  = () => { if (btn) btn.innerHTML = '<i class="fas fa-check"></i>'; setTimeout(reset, 2000); showToast('Link copied!', 'success'); };
+  navigator.clipboard.writeText(input.value).then(done).catch(() => {
+    try { input.select(); document.execCommand('copy'); done(); } catch { showToast('Copy failed — select the link manually.', 'error'); }
+  });
+}
+
+function requestReviewVia(channel) {
+  const input    = document.getElementById('rrProfileUrl');
+  const url      = input ? input.value : window.location.origin;
+  const name     = window._myProfileRecord?.full_name || 'me';
+  const first    = name.split(' ')[0];
+  const msg      = `Hey! I joined Peepd and I'd love your honest take on me. Can you leave me a quick review? It only takes 2 minutes: ${url}`;
+  const subject  = encodeURIComponent(`Would you review ${first} on Peepd?`);
+  const body     = encodeURIComponent(`Hey,\n\nI joined Peepd — a platform where peers leave each other honest reviews. I'd really value your opinion of me.\n\nCould you take 2 minutes?\n\n${url}\n\nThanks!`);
+
+  if (channel === 'sms') {
+    window.location.href = `sms:?&body=${encodeURIComponent(msg)}`;
+  } else if (channel === 'email') {
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  } else if (channel === 'linkedin') {
+    navigator.clipboard.writeText(msg).catch(() => {});
+    showToast('Message copied — paste it into a LinkedIn DM!', 'info');
+    setTimeout(() => window.open('https://www.linkedin.com/messaging/', '_blank'), 900);
+  } else if (channel === 'facebook') {
+    navigator.clipboard.writeText(msg).catch(() => {});
+    showToast('Message copied — paste it into Messenger!', 'info');
+    setTimeout(() => window.open('https://www.facebook.com/messages/', '_blank'), 900);
+  }
+}
 
 // ─── Auth Modal ────────────────────────────────────────────────────────────────
 function openAuthModal(mode = 'signin') {
@@ -1230,24 +1291,6 @@ async function shareProfileUrl() {
   }
 }
 
-function showToast(msg, type = 'info') {
-  let el = document.getElementById('peepd-toast');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'peepd-toast';
-    el.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:0.875rem;font-weight:600;opacity:0;transition:opacity 0.3s;pointer-events:none;';
-    document.body.appendChild(el);
-  }
-  const isOk = type === 'success';
-  el.textContent = msg;
-  el.style.background = isOk ? 'rgba(16,185,129,0.15)' : 'rgba(224,85,39,0.15)';
-  el.style.border      = isOk ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(224,85,39,0.4)';
-  el.style.color       = isOk ? '#6EE7B7' : '#FFBF9B';
-  el.style.opacity     = '1';
-  clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.opacity = '0'; }, 2800);
-}
-
 // ─── Dispute Review Modal ──────────────────────────────────────────────────────
 let _disputeReviewId = null;
 
@@ -1428,6 +1471,9 @@ async function loadMyProfilePage() {
     if (noSession) noSession.style.display = 'flex';
     return;
   }
+
+  // Hide the "not signed in" state in case this is a re-call after OAuth redirect
+  if (noSession) noSession.style.display = 'none';
 
   let profile;
   try {
@@ -1854,7 +1900,7 @@ async function connectWithOAuth(provider) {
     // On all other pages: redirect to My Profile after successful sign-in.
     const redirectTo = document.getElementById('socialGate')
       ? null
-      : `${window.location.origin}/my-profile`;
+      : `${window.location.origin}/my-profile.html`;
     await _signInWithOAuthProvider(provider, redirectTo);
     // Browser will redirect — nothing runs after this
   } catch (e) {

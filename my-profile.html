@@ -208,6 +208,15 @@
             </button>
           </div>
 
+          <!-- Request Reviews Card -->
+          <div class="card rr-sidebar-card" style="padding:24px; margin-bottom:16px;">
+            <h3 class="sidebar-heading" style="margin-bottom:10px;"><i class="fas fa-paper-plane" style="color:var(--purple-light);"></i> Get More Reviews</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">More reviews = higher Peep Score. Ask colleagues, friends, and peers who know you.</p>
+            <button class="btn btn--primary" style="width:100%;" onclick="openRequestReviewModal()">
+              <i class="fas fa-share-nodes"></i> Request Reviews
+            </button>
+          </div>
+
           <!-- Self-Review Lockout -->
           <div class="lockout-card">
             <div class="lockout-card__icon"><i class="fas fa-lock"></i></div>
@@ -352,6 +361,40 @@
         <p style="color:var(--text-secondary); margin-bottom:24px;">We've received your dispute and will review it within 48 hours. You'll be notified if action is taken.</p>
         <button class="btn btn--secondary" style="width:100%;" onclick="closeDisputeModal()">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Request Reviews Modal ──────────────────────────────── -->
+  <div class="modal-overlay" id="requestReviewModal" onclick="closeRequestReviewModal(event)">
+    <div class="modal rr-modal">
+      <button class="auth-modal__close" onclick="closeRequestReviewModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="rr-modal__icon"><i class="fas fa-paper-plane"></i></div>
+      <h2>Ask for Reviews</h2>
+      <p>Share your profile with people who know you. Their honest reviews raise your Peep Score.</p>
+
+      <div class="rr-url-box">
+        <input type="text" id="rrProfileUrl" class="rr-url-input" readonly placeholder="Loading your link…" />
+        <button class="rr-copy-btn" onclick="copyReviewLink()" id="rrCopyBtn" title="Copy link">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+
+      <div class="rr-channels">
+        <button class="rr-channel-btn rr-channel-btn--sms" onclick="requestReviewVia('sms')">
+          <i class="fas fa-comment-sms"></i><span>Text / iMessage</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--email" onclick="requestReviewVia('email')">
+          <i class="fas fa-envelope"></i><span>Email</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--linkedin" onclick="requestReviewVia('linkedin')">
+          <i class="fab fa-linkedin"></i><span>LinkedIn</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--facebook" onclick="requestReviewVia('facebook')">
+          <i class="fab fa-facebook-messenger"></i><span>Messenger</span>
+        </button>
+      </div>
+
+      <p class="rr-modal__note"><i class="fas fa-shield-halved"></i> Only people who know you can review you — self-reviews are blocked.</p>
     </div>
   </div>
 

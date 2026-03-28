@@ -1460,6 +1460,29 @@ section           { padding: 100px 0; }
 }
 .account-card__btn--danger:hover { background: rgba(239,68,68,0.2); }
 
+/* ─── Request Reviews Modal ────────────────────────────────────────────────── */
+.rr-modal { max-width: 460px; text-align: center; }
+.rr-modal__icon { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.18)); border: 1px solid rgba(124,58,237,0.35); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--purple-light); margin: 0 auto 16px; }
+.rr-modal h2 { font-size: 1.25rem; margin-bottom: 8px; }
+.rr-modal > p { font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 20px; }
+.rr-url-box { display: flex; align-items: center; gap: 8px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 6px 6px 14px; margin-bottom: 18px; }
+.rr-url-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-secondary); font-size: 0.8rem; font-family: inherit; min-width: 0; }
+.rr-copy-btn { flex-shrink: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 0.9rem; }
+.rr-copy-btn:hover { color: var(--purple-light); border-color: var(--purple); }
+.rr-channels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.rr-channel-btn { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); font-size: 0.875rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: var(--transition); text-align: left; width: 100%; }
+.rr-channel-btn i { font-size: 1.1rem; flex-shrink: 0; }
+.rr-channel-btn:hover { transform: translateY(-1px); }
+.rr-channel-btn--sms i    { color: #34D399; }
+.rr-channel-btn--sms:hover    { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.07); }
+.rr-channel-btn--email i  { color: var(--cyan-light); }
+.rr-channel-btn--email:hover  { border-color: rgba(6,182,212,0.5); background: rgba(6,182,212,0.07); }
+.rr-channel-btn--linkedin i  { color: #0A66C2; }
+.rr-channel-btn--linkedin:hover { border-color: rgba(10,102,194,0.5); background: rgba(10,102,194,0.07); }
+.rr-channel-btn--facebook i  { color: #1877F2; }
+.rr-channel-btn--facebook:hover { border-color: rgba(24,119,242,0.5); background: rgba(24,119,242,0.07); }
+.rr-modal__note { font-size: 0.75rem !important; color: var(--text-muted) !important; margin-bottom: 0 !important; display: flex !important; align-items: center; justify-content: center; gap: 6px; }
+
 /* ─── Avatar Color Picker ───────────────────────────────────────────────────── */
 .avatar-picker {
   display: flex;
