@@ -148,3 +148,83 @@ export function subscribeToScore(profileId, callback) {
     )
     .subscribe();
 }
+
+// ─── Social Connections ────────────────────────────────────────────────────────
+
+/**
+ * Fetch verified social connections for a profile.
+ * @param {string} profileId
+ */
+export async function getSocialConnections(profileId) {
+  const { data, error } = await supabase
+    .from('social_connections')
+    .select('*')
+    .eq('profile_id', profileId)
+    .eq('is_verified', true);
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Save (upsert) a social connection record.
+ * @param {object} opts
+ * @param {string|null} opts.profile_id
+ * @param {string} opts.platform   - 'facebook' | 'linkedin' | 'instagram'
+ * @param {string} opts.handle
+ * @param {number} opts.follower_count
+ */
+export async function saveSocialConnection({ profile_id, platform, handle, follower_count }) {
+  const row = { platform, handle, follower_count };
+  if (profile_id) row.profile_id = profile_id;
+
+  // Use insert with onConflict only when profile_id is present (unique constraint)
+  if (profile_id) {
+    const { data, error } = await supabase
+      .from('social_connections')
+      .upsert([row], { onConflict: 'profile_id,platform' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from('social_connections')
+      .insert([row])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sign in via OAuth (facebook or linkedin_oidc).
+ * Redirects the browser to the provider login page.
+ */
+export async function signInWithOAuthProvider(provider) {
+  const scopeMap = {
+    facebook:      'public_profile,email,user_friends',
+    linkedin_oidc: 'openid,profile,email',
+  };
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      scopes:     scopeMap[provider] || '',
+      redirectTo: window.location.origin + '/write-review.html',
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get the current Supabase auth session.
+ * provider_token (OAuth access token) is present right after callback.
+ */
+export async function getAuthSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session;
+}

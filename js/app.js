@@ -11,7 +11,9 @@
 let _supabase = null;
 let _getProfile, _getTopProfiles, _searchProfiles,
     _getReviewsForProfile, _submitReview,
-    _castAccuracyVote, _subscribeToReviews, _subscribeToScore;
+    _castAccuracyVote, _subscribeToReviews, _subscribeToScore,
+    _getSocialConnections, _saveSocialConnection,
+    _signInWithOAuthProvider, _getAuthSession;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -26,6 +28,22 @@ async function loadSupabase() {
     _castAccuracyVote       = mod.castAccuracyVote;
     _subscribeToReviews     = mod.subscribeToReviews;
     _subscribeToScore       = mod.subscribeToScore;
+    _getSocialConnections    = mod.getSocialConnections;
+    _saveSocialConnection    = mod.saveSocialConnection;
+    _signInWithOAuthProvider = mod.signInWithOAuthProvider;
+    _getAuthSession          = mod.getAuthSession;
+
+    // Listen for OAuth callback on the write-review page
+    if (document.getElementById('socialGate')) {
+      _supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const provider = session.user?.app_metadata?.provider;
+          if (provider === 'facebook' || provider === 'linkedin_oidc') {
+            await handleSocialOAuthCallback(session);
+          }
+        }
+      });
+    }
   } catch (e) {
     console.warn('Supabase module failed to load — running in demo mode.', e);
   }
@@ -68,6 +86,8 @@ function init() {
   initReviewForm();
   initHistoryChart();
   initSearch();
+  initSocialGate();
+  initProfileSocialConnections();
   loadTopProfiles();
   // Profile page: load live data
   const profileId = getProfileId();
@@ -454,6 +474,19 @@ function initReviewForm() {
 
 function submitReview() {
   clearFormError();
+
+  // 0. Social verification check
+  const socialSession = getSocialSession();
+  if (!socialSession || socialSession.follower_count < 500) {
+    const gate = document.getElementById('socialGate');
+    if (gate) {
+      gate.style.opacity = '1';
+      gate.classList.remove('hidden');
+      gate.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    showFormError('You must connect a social account with 500+ connections before submitting a review.');
+    return;
+  }
 
   // 1. Self-review check
   if (state.selectedPersonIsSelf) {
@@ -879,14 +912,313 @@ function timeAgo(isoStr) {
 
 // ─── Expose functions needed by inline HTML onclick handlers ─────────────────
 // ES modules don't attach to window automatically, so we do it explicitly.
-window.selectPerson      = selectPerson;
-window.selectRel         = selectRel;
-window.openPersonSearch  = openPersonSearch;
-window.heroSearchSubmit  = heroSearchSubmit;
-window.castVote          = castVote;
-window.demoVote          = demoVote;
-window.closeModal        = closeModal;
-window.updateCharCounter = updateCharCounter;
+window.selectPerson          = selectPerson;
+window.selectRel             = selectRel;
+window.openPersonSearch      = openPersonSearch;
+window.heroSearchSubmit      = heroSearchSubmit;
+window.castVote              = castVote;
+window.demoVote              = demoVote;
+window.closeModal            = closeModal;
+window.updateCharCounter     = updateCharCounter;
+window.connectWithOAuth      = connectWithOAuth;
+window.submitManualCount     = submitManualCount;
+window.resetSocialGate       = resetSocialGate;
+window.disconnectSocial      = disconnectSocial;
+
+// ─── Social Verification Gate (OAuth-based) ─────────────────────────────────────
+const SOCIAL_SESSION_KEY = 'peepd_social_session';
+
+function getSocialSession() {
+  try { return JSON.parse(localStorage.getItem(SOCIAL_SESSION_KEY)); } catch { return null; }
+}
+
+function saveSocialSession(data) {
+  localStorage.setItem(SOCIAL_SESSION_KEY, JSON.stringify(data));
+}
+
+// Switch between gate states: 'Default' | 'Loading' | 'Manual' | 'Insufficient'
+function showSocialGateState(state) {
+  ['Default', 'Loading', 'Manual', 'Insufficient'].forEach(s => {
+    const el = document.getElementById('sgState' + s);
+    if (el) el.style.display = (s === state) ? '' : 'none';
+  });
+}
+
+function initSocialGate() {
+  const gate = document.getElementById('socialGate');
+  if (!gate) return;
+
+  // Already have a valid local social session
+  const socialSession = getSocialSession();
+  if (socialSession && socialSession.follower_count >= 500) {
+    gate.classList.add('hidden');
+    showConnectedBanner(socialSession);
+    return;
+  }
+
+  // Check if there's an existing Supabase auth session (e.g. page refresh after OAuth)
+  // provider_token is NOT available on refresh, so we show manual count entry
+  if (_getAuthSession) {
+    _getAuthSession().then(session => {
+      if (!session) return;
+      const provider = session.user?.app_metadata?.provider;
+      if ((provider === 'facebook' || provider === 'linkedin_oidc') && !getSocialSession()) {
+        window._verifiedProvider = provider;
+        window._verifiedHandle   = session.user?.user_metadata?.full_name
+                                 || session.user?.user_metadata?.name
+                                 || session.user?.email || '';
+        window._verifiedAuthId   = session.user.id;
+        populateManualGateState(provider, window._verifiedHandle);
+        showSocialGateState('Manual');
+      }
+    }).catch(() => {});
+  }
+}
+
+function populateManualGateState(provider, displayName) {
+  const platformNames = { facebook: 'Facebook', linkedin_oidc: 'LinkedIn' };
+  const termMap       = { facebook: 'Facebook friends', linkedin_oidc: 'LinkedIn connections' };
+  const pName = platformNames[provider] || provider;
+  const titleEl = document.getElementById('sgManualTitle');
+  const descEl  = document.getElementById('sgManualDesc');
+  const labelEl = document.getElementById('sgManualLabel');
+  if (titleEl) titleEl.textContent = `${pName} Account Verified ✓`;
+  if (descEl)  descEl.textContent  = `Your ${pName} account (${displayName || pName}) is verified as real. Please enter your current connection count to continue.`;
+  if (labelEl) labelEl.textContent = `Number of ${termMap[provider] || 'connections'}`;
+}
+
+function showConnectedBanner(session) {
+  const banner = document.getElementById('socialConnectedBanner');
+  if (!banner) return;
+  const icons  = { linkedin: 'fab fa-linkedin', facebook: 'fab fa-facebook', instagram: 'fab fa-instagram' };
+  const colors = { linkedin: '#0A66C2', facebook: '#1877F2', instagram: '#E1306C' };
+  const terms  = { linkedin: 'connections', facebook: 'friends', instagram: 'followers' };
+  const p = session.platform;
+  banner.innerHTML = `
+    <i class="${icons[p] || 'fas fa-check'}" style="color:${colors[p] || 'var(--green)'}"></i>
+    <strong>${escHtml(session.handle)}</strong>&nbsp;connected
+    &nbsp;·&nbsp; ${Number(session.follower_count).toLocaleString()} ${terms[p] || 'connections'} verified
+    <button class="btn btn--ghost btn--sm" style="margin-left:auto;font-size:0.72rem;padding:4px 10px;" onclick="disconnectSocial()">Disconnect</button>
+  `;
+  banner.style.display = 'flex';
+}
+
+// Redirect to Facebook / LinkedIn OAuth via Supabase
+async function connectWithOAuth(provider) {
+  if (!_signInWithOAuthProvider) {
+    showToast('Social sign-in is not configured yet. See setup instructions.', 'error');
+    return;
+  }
+  try {
+    await _signInWithOAuthProvider(provider);
+    // Browser will redirect — nothing runs after this
+  } catch (e) {
+    showToast('Sign-in failed: ' + e.message, 'error');
+  }
+}
+
+// Called by onAuthStateChange after OAuth redirect returns
+async function handleSocialOAuthCallback(session) {
+  const gate = document.getElementById('socialGate');
+  if (!gate) return;
+
+  const provider      = session.user?.app_metadata?.provider;
+  const providerToken = session.provider_token;
+  const platformNames = { facebook: 'Facebook', linkedin_oidc: 'LinkedIn' };
+  const pName         = platformNames[provider] || provider;
+
+  const loadingText = document.getElementById('sgLoadingText');
+  if (loadingText) loadingText.textContent = `Fetching your ${pName} connection count…`;
+  showSocialGateState('Loading');
+  gate.classList.remove('hidden');
+
+  let count = null;
+  if (providerToken) {
+    if (provider === 'facebook')      count = await fetchFacebookFriendCount(providerToken);
+    if (provider === 'linkedin_oidc') count = await fetchLinkedInConnectionCount(providerToken);
+  }
+
+  const handle = session.user?.user_metadata?.full_name
+              || session.user?.user_metadata?.name
+              || session.user?.email || '';
+
+  if (count !== null) {
+    if (count >= 500) {
+      // ✅ Auto-verified
+      const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
+      const sessionData = { platform, handle, follower_count: count, auth_user_id: session.user.id, verified_at: new Date().toISOString() };
+      saveSocialSession(sessionData);
+      if (_saveSocialConnection) {
+        _saveSocialConnection({ profile_id: null, platform, handle, follower_count: count }).catch(() => {});
+      }
+      gate.style.transition = 'opacity 0.4s ease';
+      gate.style.opacity    = '0';
+      setTimeout(() => gate.classList.add('hidden'), 420);
+      showConnectedBanner(sessionData);
+      showToast(`${pName} verified! ${count.toLocaleString()} connections confirmed.`, 'success');
+    } else {
+      // ❌ Count too low
+      const descEl = document.getElementById('sgInsufficientDesc');
+      if (descEl) descEl.innerHTML = `Your ${pName} account shows <strong>${count.toLocaleString()}</strong> connections — you need 500+ to review on Peepd.`;
+      showSocialGateState('Insufficient');
+    }
+  } else {
+    // Count unavailable (API restriction) — show verified account + manual entry
+    window._verifiedProvider = provider;
+    window._verifiedHandle   = handle;
+    window._verifiedAuthId   = session.user.id;
+    populateManualGateState(provider, handle);
+    showSocialGateState('Manual');
+  }
+}
+
+async function fetchFacebookFriendCount(accessToken) {
+  try {
+    const resp = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,friends.summary(true)&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const data = await resp.json();
+    const total = data?.friends?.summary?.total_count;
+    return (typeof total === 'number') ? total : null;
+  } catch { return null; }
+}
+
+async function fetchLinkedInConnectionCount(accessToken) {
+  // Attempt 1: LinkedIn network size endpoint
+  try {
+    const resp = await fetch(
+      'https://api.linkedin.com/v2/networkSizes/urn:li:person:~?edgeType=ConnectedMember',
+      { headers: { 'Authorization': `Bearer ${accessToken}`, 'X-Restli-Protocol-Version': '2.0.0' } }
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      if (typeof data.firstDegreeSize === 'number') return data.firstDegreeSize;
+    }
+  } catch {}
+  // Attempt 2: legacy numConnections field
+  try {
+    const resp2 = await fetch(
+      'https://api.linkedin.com/v2/me?projection=(id,numConnections)',
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    if (resp2.ok) {
+      const data2 = await resp2.json();
+      if (typeof data2.numConnections === 'number') return data2.numConnections;
+    }
+  } catch {}
+  return null;
+}
+
+async function submitManualCount() {
+  const countInput = document.getElementById('sgManualCount');
+  const errEl      = document.getElementById('sgManualError');
+  const count      = parseInt(countInput?.value, 10);
+  const provider   = window._verifiedProvider || 'facebook';
+
+  if (isNaN(count) || count < 0) {
+    errEl.textContent   = 'Please enter a valid number.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const termMap = { facebook: 'friends', linkedin_oidc: 'connections', linkedin: 'connections' };
+  if (count < 500) {
+    errEl.textContent   = `You need at least 500 ${termMap[provider] || 'connections'} to review on Peepd. Your account shows ${count} — try a different account.`;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
+  const handle      = window._verifiedHandle || '';
+  const sessionData = { platform, handle, follower_count: count, auth_user_id: window._verifiedAuthId, verified_at: new Date().toISOString() };
+  saveSocialSession(sessionData);
+  if (_saveSocialConnection) {
+    _saveSocialConnection({ profile_id: null, platform, handle, follower_count: count }).catch(() => {});
+  }
+
+  const gate = document.getElementById('socialGate');
+  if (gate) {
+    gate.style.transition = 'opacity 0.4s ease';
+    gate.style.opacity    = '0';
+    setTimeout(() => gate.classList.add('hidden'), 420);
+  }
+  showConnectedBanner(sessionData);
+  const platformNames = { facebook: 'Facebook', linkedin: 'LinkedIn' };
+  showToast(`${platformNames[platform] || platform} verified! You can now submit reviews.`, 'success');
+}
+
+function resetSocialGate() {
+  if (_supabase) _supabase.auth.signOut().catch(() => {});
+  window._verifiedProvider = null;
+  window._verifiedHandle   = null;
+  window._verifiedAuthId   = null;
+  const countEl = document.getElementById('sgManualCount');
+  const errEl   = document.getElementById('sgManualError');
+  if (countEl) countEl.value = '';
+  if (errEl)   errEl.style.display = 'none';
+  showSocialGateState('Default');
+}
+
+async function disconnectSocial() {
+  localStorage.removeItem(SOCIAL_SESSION_KEY);
+  if (_supabase) await _supabase.auth.signOut().catch(() => {});
+  const banner = document.getElementById('socialConnectedBanner');
+  if (banner) banner.style.display = 'none';
+  const gate = document.getElementById('socialGate');
+  if (gate) {
+    showSocialGateState('Default');
+    gate.style.opacity = '1';
+    gate.classList.remove('hidden');
+  }
+  showToast('Social account disconnected.', 'info');
+}
+
+// ─── Profile Social Connections (profile.html) ────────────────────────────────
+async function initProfileSocialConnections() {
+  const card = document.getElementById('profileSocialCard');
+  if (!card) return;
+  const profileId = getProfileId();
+  if (!profileId || !_getSocialConnections) return;
+  try {
+    const connections = await _getSocialConnections(profileId);
+    renderProfileSocialCard(card, connections);
+  } catch (e) {
+    console.warn('Could not load social connections:', e.message);
+  }
+}
+
+function renderProfileSocialCard(card, connections) {
+  const icons  = { linkedin: 'fab fa-linkedin', facebook: 'fab fa-facebook', instagram: 'fab fa-instagram' };
+  const colors = { linkedin: '#0A66C2',          facebook: '#1877F2',          instagram: '#E1306C' };
+  const terms  = { linkedin: 'connections',      facebook: 'friends',          instagram: 'followers' };
+
+  if (!connections || connections.length === 0) {
+    card.innerHTML = `
+      <h3><i class="fas fa-link" style="color:var(--amber);"></i> Social Verification</h3>
+      <div class="social-unverified-notice">
+        <i class="fas fa-triangle-exclamation" style="margin-top:2px;"></i>
+        <span>This profile hasn't connected a social account. Reviews are <strong>paused</strong> until the owner verifies 500+ connections.</span>
+      </div>
+    `;
+    return;
+  }
+
+  const items = connections.map(c => `
+    <div class="social-connection-item">
+      <i class="${icons[c.platform] || 'fas fa-link'}" style="color:${colors[c.platform] || 'var(--purple)'}"></i>
+      <span class="soc-handle">${escHtml(c.handle)}</span>
+      <span class="soc-count">${Number(c.follower_count).toLocaleString()} ${terms[c.platform] || 'connections'}</span>
+    </div>
+  `).join('');
+
+  card.innerHTML = `
+    <h3><i class="fas fa-link" style="color:var(--cyan);"></i> Social Verification</h3>
+    ${items}
+    <div class="social-verified-badge">
+      <i class="fas fa-circle-check"></i>
+      Profile accepts reviews · Social verified
+    </div>
+  `;
+}
 
 // ─── Easing ───────────────────────────────────────────────────────────────────
 function easeOutCubic(t) {

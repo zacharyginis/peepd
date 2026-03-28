@@ -195,6 +195,31 @@ alter publication supabase_realtime add table public.profiles;
 alter publication supabase_realtime add table public.reviews;
 alter publication supabase_realtime add table public.accuracy_votes;
 
+-- ── Social Connections ────────────────────────────────────────────────────────
+-- Users must connect a social account with 500+ connections/followers
+-- to write reviews OR to have their profile accept reviews.
+create table if not exists public.social_connections (
+  id              uuid primary key default uuid_generate_v4(),
+  created_at      timestamptz not null default now(),
+  profile_id      uuid references public.profiles(id) on delete cascade,
+  platform        text not null check (platform in ('facebook', 'linkedin', 'instagram')),
+  handle          text not null,
+  follower_count  integer not null default 0 check (follower_count >= 0),
+  is_verified     boolean not null generated always as (follower_count >= 500) stored,
+  unique (profile_id, platform)
+);
+
+alter table public.social_connections enable row level security;
+
+create policy "Social connections are publicly readable"
+  on public.social_connections for select using (true);
+
+create policy "Anyone can insert social connections"
+  on public.social_connections for insert with check (true);
+
+create policy "Anyone can update social connections"
+  on public.social_connections for update using (true);
+
 -- ── Seed demo data ────────────────────────────────────────────────────────────
 insert into public.profiles (full_name, title, company, location, initials, avatar_class, peep_score, review_count, accuracy_rate, is_verified)
 values
