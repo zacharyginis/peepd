@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cookie Policy — Peepd</title>
+  <meta name="description" content="Peepd Cookie Policy — how we use cookies and local storage on the Platform." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+  <style>
+    .legal-page { padding: 80px 0 100px; }
+    .legal-page h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 8px; }
+    .legal-page .last-updated { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 48px; display: block; }
+    .legal-page h2 { font-size: 1.25rem; font-weight: 700; margin: 40px 0 12px; color: var(--text-primary); }
+    .legal-page p, .legal-page li { font-size: 0.975rem; color: var(--text-secondary); line-height: 1.8; }
+    .legal-page ul, .legal-page ol { padding-left: 20px; margin: 12px 0; }
+    .legal-page li { margin-bottom: 6px; }
+    .legal-page a { color: var(--purple); text-decoration: none; }
+    .legal-page a:hover { text-decoration: underline; }
+    .legal-divider { border: none; border-top: 1px solid var(--border-subtle); margin: 48px 0; }
+    .legal-toc { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+    .legal-toc h3 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 14px; }
+    .legal-toc ol { padding-left: 18px; margin: 0; }
+    .legal-toc li { margin-bottom: 8px; }
+    .legal-toc a { font-size: 0.9rem; }
+    .cookie-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
+    .cookie-table th { text-align: left; padding: 10px 14px; background: var(--bg-card); color: var(--text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border-subtle); }
+    .cookie-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; color: var(--text-secondary); }
+    .cookie-table td code { background: var(--bg-card); padding: 2px 6px; border-radius: 4px; font-size: 0.82rem; font-family: monospace; color: var(--text-primary); }
+    .cookie-table tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-icon">
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+        </div>
+        <span class="nav__logo-text">Peepd</span>
+      </a>
+      <div class="nav__search">
+        <i class="fas fa-search nav__search-icon"></i>
+        <input type="text" placeholder="Search for someone…" autocomplete="off" />
+      </div>
+      <ul class="nav__links">
+        <li><a href="index.html" class="nav__link">Explore</a></li>
+        <li><a href="profile.html" class="nav__link">How It Works</a></li>
+        <li><a href="write-review.html" class="nav__link">Write a Review</a></li>
+      </ul>
+      <div class="nav__actions">
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openAuthModal('signup')">Sign Up</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Cookie Policy ──────────────────────────────────────── -->
+  <main class="legal-page">
+    <div class="container" style="max-width: 780px;">
+      <h1>Cookie Policy</h1>
+      <span class="last-updated">Last updated: March 27, 2026</span>
+
+      <div class="legal-toc">
+        <h3>Contents</h3>
+        <ol>
+          <li><a href="#c1">What Are Cookies?</a></li>
+          <li><a href="#c2">How Peepd Uses Cookies &amp; Local Storage</a></li>
+          <li><a href="#c3">First-Party Cookies &amp; Storage</a></li>
+          <li><a href="#c4">Third-Party Cookies</a></li>
+          <li><a href="#c5">Managing &amp; Disabling Cookies</a></li>
+          <li><a href="#c6">Do Not Track</a></li>
+          <li><a href="#c7">Changes to This Policy</a></li>
+          <li><a href="#c8">Contact</a></li>
+        </ol>
+      </div>
+
+      <p>This Cookie Policy explains how Peepd Inc. ("Peepd," "we," "us," or "our") uses cookies, browser local storage, and similar tracking technologies when you visit <a href="https://peepd.com">peepd.com</a> (the "Platform"). It should be read together with our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+
+      <hr class="legal-divider" />
+
+      <h2 id="c1">1. What Are Cookies?</h2>
+      <p>Cookies are small text files that a website places on your device when you visit it. They allow the site to remember your preferences and actions over time, or to recognize you across visits. Cookies are widely used to make websites work efficiently and to provide reporting information to site owners.</p>
+      <p>In addition to cookies, Peepd uses <strong>browser local storage</strong> — a similar browser feature that stores key-value data locally on your device, with no automatic expiry and no transmission to the server with every request. Local storage is used for session state that needs to persist between page loads without a server round-trip.</p>
+
+      <h2 id="c2">2. How Peepd Uses Cookies &amp; Local Storage</h2>
+      <p>Peepd uses cookies and local storage exclusively for the following purposes:</p>
+      <ul>
+        <li><strong>Essential operation</strong> — to authenticate you, maintain your session, and ensure the Platform functions correctly.</li>
+        <li><strong>Verification state</strong> — to remember that you have completed social connection verification or identity verification, so you are not asked to repeat the process on every visit.</li>
+        <li><strong>Preferences</strong> — to remember UI preferences such as theme or search settings.</li>
+      </ul>
+      <p>Peepd does <strong>not</strong> use cookies or local storage for:</p>
+      <ul>
+        <li>Behavioral advertising or ad retargeting.</li>
+        <li>Cross-site tracking of your activity on other websites.</li>
+        <li>Selling data to third-party advertisers.</li>
+      </ul>
+
+      <h2 id="c3">3. First-Party Cookies &amp; Storage</h2>
+      <p>The following cookies and local storage keys are set directly by Peepd:</p>
+
+      <table class="cookie-table">
+        <thead>
+          <tr>
+            <th>Name / Key</th>
+            <th>Type</th>
+            <th>Purpose</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>sb-&lt;ref&gt;-auth-token</code></td>
+            <td>Local Storage</td>
+            <td>Stores your Supabase authentication session token after signing in with LinkedIn or Facebook.</td>
+            <td>Until sign-out or token expiry (typically 1 hour, auto-refreshed)</td>
+          </tr>
+          <tr>
+            <td><code>peepd_social_session</code></td>
+            <td>Local Storage</td>
+            <td>Stores a JSON object indicating that you have passed the 500-connection social verification gate, including platform, handle, and connection count.</td>
+            <td>Persistent (cleared on disconnect or account deletion)</td>
+          </tr>
+          <tr>
+            <td><code>peepd_id_session</code></td>
+            <td>Local Storage</td>
+            <td>Stores a JSON object indicating that you have passed the Didit identity verification check, including the Didit session ID and approval timestamp.</td>
+            <td>Persistent (cleared on retry or account deletion)</td>
+          </tr>
+          <tr>
+            <td><code>peepd_reviewer_uid</code></td>
+            <td>Local Storage</td>
+            <td>Stores an anonymous UUID used to correlate your browser session with a Didit verification request before full account sign-in.</td>
+            <td>Persistent</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="c4">4. Third-Party Cookies</h2>
+      <p>When you use the social login or identity verification features, third-party services may set their own cookies on your device:</p>
+
+      <table class="cookie-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Purpose</th>
+            <th>Policy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LinkedIn</td>
+            <td>Authentication and session management during LinkedIn OAuth sign-in. LinkedIn may also set analytics cookies on pages that embed LinkedIn functionality.</td>
+            <td><a href="https://www.linkedin.com/legal/cookie-policy" target="_blank" rel="noopener">linkedin.com/legal/cookie-policy</a></td>
+          </tr>
+          <tr>
+            <td>Facebook / Meta</td>
+            <td>Authentication and session management during Facebook OAuth sign-in. Meta may also set the <code>_fbp</code> tracking pixel cookie.</td>
+            <td><a href="https://www.facebook.com/policies/cookies/" target="_blank" rel="noopener">facebook.com/policies/cookies</a></td>
+          </tr>
+          <tr>
+            <td>Didit</td>
+            <td>Session management on the Didit-hosted identity verification page (a separate domain). Didit may set cookies necessary to complete the ID and liveness check.</td>
+            <td><a href="https://didit.me/privacy" target="_blank" rel="noopener">didit.me/privacy</a></td>
+          </tr>
+          <tr>
+            <td>Font Awesome (cdnjs)</td>
+            <td>CDN delivery of icon font assets. Cloudflare/cdnjs may set performance and security cookies.</td>
+            <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">cloudflare.com/privacypolicy</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Peepd does not control the cookies set by third parties. Please review the linked privacy and cookie policies for each provider to understand how they use your data.</p>
+
+      <h2 id="c5">5. Managing &amp; Disabling Cookies</h2>
+      <p>You can control cookies and local storage through your browser settings. Here is how to manage them in major browsers:</p>
+      <ul>
+        <li><strong>Google Chrome</strong> — Settings → Privacy and security → Cookies and other site data</li>
+        <li><strong>Mozilla Firefox</strong> — Settings → Privacy &amp; Security → Cookies and Site Data</li>
+        <li><strong>Apple Safari</strong> — Preferences → Privacy → Manage Website Data</li>
+        <li><strong>Microsoft Edge</strong> — Settings → Cookies and site permissions → Cookies and site data</li>
+      </ul>
+      <p>To clear Peepd local storage specifically, open your browser's developer tools (F12), navigate to <strong>Application → Local Storage → peepd.com</strong>, and delete the relevant keys.</p>
+      <p><strong>Please note:</strong> Disabling or clearing essential cookies and local storage will prevent you from using certain features of the Platform, including staying signed in and bypassing verification gates you have already completed.</p>
+
+      <h2 id="c6">6. Do Not Track</h2>
+      <p>Some browsers offer a "Do Not Track" (DNT) setting that signals to websites that you do not wish to be tracked. Because Peepd does not use cross-site behavioral tracking, our Platform's behavior does not change in response to a DNT signal. We do not track users across third-party websites.</p>
+
+      <h2 id="c7">7. Changes to This Policy</h2>
+      <p>We may update this Cookie Policy from time to time to reflect changes in technology, regulation, or the way we operate the Platform. When we do, we will update the "Last updated" date at the top of this page. Material changes will be communicated via email or a notice on the Platform.</p>
+
+      <h2 id="c8">8. Contact</h2>
+      <p>Questions about our use of cookies? Contact us:</p>
+      <p><strong>Peepd Inc.</strong><br />
+      Email: <a href="mailto:privacy@peepd.com">privacy@peepd.com</a></p>
+    </div>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="nav__logo" style="display:inline-flex; margin-bottom:12px;">
+            <div class="nav__logo-icon">
+              <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+            </div>
+            <span class="nav__logo-text">Peepd</span>
+          </a>
+          <p>The world's first community-powered social reputation platform. Honest scores built by real people — never by algorithms alone.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="index.html">Explore</a></li>
+            <li><a href="profile.html">View Profile</a></li>
+            <li><a href="write-review.html">Write a Review</a></li>
+            <li><a href="#">Leaderboard</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">Accuracy Engine</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy-policy.html">Privacy Policy</a></li>
+            <li><a href="terms-of-service.html">Terms of Service</a></li>
+            <li><a href="#">Review Guidelines</a></li>
+            <li><a href="#">Report Abuse</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2026 Peepd Inc. All rights reserved. Reviews are peer-generated and do not reflect the views of Peepd.</p>
+        <div class="footer__bottom-links">
+          <a href="privacy-policy.html">Privacy</a>
+          <a href="terms-of-service.html">Terms</a>
+          <a href="cookie-policy.html">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Auth Modal ──────────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="auth-modal__logo">
+        <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+      </div>
+      <h2 id="authModalTitle" style="text-align:center; font-size:1.35rem; font-weight:800; margin-bottom:6px;">Sign In to Peepd</h2>
+      <p id="authModalDesc" style="text-align:center; font-size:0.875rem; color:var(--text-muted); margin-bottom:28px;">Choose a platform to continue.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
+          <i class="fab fa-linkedin"></i> Continue with LinkedIn
+        </button>
+        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
+          <i class="fab fa-facebook"></i> Continue with Facebook
+        </button>
+      </div>
+      <p class="auth-modal__note">By continuing you agree to our <a href="terms-of-service.html">Terms of Service</a> and <a href="privacy-policy.html">Privacy Policy</a>.</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

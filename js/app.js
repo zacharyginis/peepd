@@ -13,7 +13,8 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _getReviewsForProfile, _submitReview,
     _castAccuracyVote, _subscribeToReviews, _subscribeToScore,
     _getSocialConnections, _saveSocialConnection,
-    _signInWithOAuthProvider, _getAuthSession;
+    _signInWithOAuthProvider, _getAuthSession,
+    _createDiditSession, _verifyDiditSession;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -32,6 +33,8 @@ async function loadSupabase() {
     _saveSocialConnection    = mod.saveSocialConnection;
     _signInWithOAuthProvider = mod.signInWithOAuthProvider;
     _getAuthSession          = mod.getAuthSession;
+    _createDiditSession      = mod.createDiditSession;
+    _verifyDiditSession      = mod.verifyDiditSession;
 
     // Listen for OAuth callback on the write-review page
     if (document.getElementById('socialGate')) {
@@ -87,6 +90,7 @@ function init() {
   initHistoryChart();
   initSearch();
   initSocialGate();
+  initIdGate();
   initProfileSocialConnections();
   loadTopProfiles();
   // Profile page: load live data
@@ -439,28 +443,11 @@ document.addEventListener('keydown', (e) => {
 // ─── Hero Search ──────────────────────────────────────────────────────────────
 function heroSearchSubmit() {
   const input = document.getElementById('heroSearch');
-  if (input && input.value.trim()) {
-    window.location.href = 'profile.html';
-  }
+  if (!input || !input.value.trim()) return;
+  const container = input.closest('.hero__search');
+  const dropdown = container ? container.querySelector('.search-dropdown') : null;
+  navigateToFirstResult(input, dropdown);
 }
-
-// Allow pressing Enter in the hero search
-document.addEventListener('DOMContentLoaded', () => {
-  const heroSearch = document.getElementById('heroSearch');
-  if (heroSearch) {
-    heroSearch.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') heroSearchSubmit();
-    });
-  }
-  const navSearch = document.getElementById('navSearch');
-  if (navSearch) {
-    navSearch.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && navSearch.value.trim()) {
-        window.location.href = 'profile.html';
-      }
-    });
-  }
-});
 
 // ─── Review Form Validation & Submission ─────────────────────────────────────
 function initReviewForm() {
@@ -485,6 +472,19 @@ function submitReview() {
       gate.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     showFormError('You must connect a social account with 500+ connections before submitting a review.');
+    return;
+  }
+
+  // 0b. ID verification check
+  const idSession = getIdSession();
+  if (!idSession || !idSession.verified) {
+    const gate = document.getElementById('idGate');
+    if (gate) {
+      gate.style.opacity = '1';
+      gate.classList.remove('hidden');
+      gate.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    showFormError('You must complete ID and face verification before submitting a review.');
     return;
   }
 
@@ -750,31 +750,114 @@ function initHistoryChart() {
 
 // ─── Search (nav + hero) ──────────────────────────────────────────────────────
 function initSearch() {
-  const inputs = [
-    document.getElementById('navSearch'),
-    document.getElementById('heroSearch'),
-  ].filter(Boolean);
+  const pairs = [
+    { inputId: 'navSearch',  containerSel: '.nav__search'  },
+    { inputId: 'heroSearch', containerSel: '.hero__search' },
+  ];
 
-  inputs.forEach(input => {
+  pairs.forEach(({ inputId, containerSel }) => {
+    const input = document.getElementById(inputId);
+    const container = document.querySelector(containerSel);
+    if (!input || !container) return;
+
+    // Inject dropdown once
+    let dropdown = container.querySelector('.search-dropdown');
+    if (!dropdown) {
+      dropdown = document.createElement('div');
+      dropdown.className = 'search-dropdown hidden';
+      container.appendChild(dropdown);
+    }
+
     let debounce;
     input.addEventListener('input', () => {
       clearTimeout(debounce);
-      debounce = setTimeout(() => liveSearch(input.value.trim()), 280);
+      const q = input.value.trim();
+      if (!q) { hideSearchDropdown(dropdown); return; }
+      dropdown.innerHTML = '<div class="search-loading"><i class="fas fa-circle-notch fa-spin"></i></div>';
+      dropdown.classList.remove('hidden');
+      debounce = setTimeout(() => liveSearch(q, dropdown), 280);
     });
+
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && input.value.trim()) heroSearchSubmit();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        navigateToFirstResult(input, dropdown);
+      }
+      if (e.key === 'Escape') hideSearchDropdown(dropdown);
+    });
+  });
+
+  // Close all dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.search-dropdown').forEach(d => {
+      if (!d.parentElement.contains(e.target)) hideSearchDropdown(d);
     });
   });
 }
 
-async function liveSearch(query) {
-  if (!query || !_searchProfiles) return;
+function hideSearchDropdown(dropdown) {
+  if (!dropdown) return;
+  dropdown.classList.add('hidden');
+  dropdown.innerHTML = '';
+}
+
+async function liveSearch(query, dropdown) {
+  if (!query) return;
+  if (!_searchProfiles) {
+    dropdown.innerHTML = '<div class="search-no-results">Search unavailable — please reload.</div>';
+    return;
+  }
   try {
     const results = await _searchProfiles(query);
-    // Future: render a dropdown — currently navigates on Enter
-    console.debug('Search results:', results);
+    renderSearchDropdown(results, dropdown);
   } catch (e) {
     console.warn('Search error:', e.message);
+    dropdown.innerHTML = '<div class="search-no-results">Something went wrong. Try again.</div>';
+  }
+}
+
+function renderSearchDropdown(results, dropdown) {
+  if (!dropdown) return;
+  if (!results || results.length === 0) {
+    dropdown.innerHTML = '<div class="search-no-results">No people found matching that name.</div>';
+    dropdown.classList.remove('hidden');
+    return;
+  }
+  dropdown.innerHTML = results.map(p => {
+    const meta = [p.title, p.company].filter(Boolean).map(escHtml).join(' · ');
+    return `
+      <a href="profile.html?id=${encodeURIComponent(p.id)}" class="search-result-item">
+        <div class="avatar ${escHtml(p.avatar_class || 'avatar-1')}">${escHtml(p.initials || '?')}</div>
+        <div class="search-result-info">
+          <div class="search-result-name">${escHtml(p.full_name)}</div>
+          ${meta ? `<div class="search-result-meta">${meta}</div>` : ''}
+        </div>
+        <span class="search-result-score">${p.peep_score ?? ''}</span>
+      </a>`;
+  }).join('');
+  dropdown.classList.remove('hidden');
+}
+
+async function navigateToFirstResult(input, dropdown) {
+  const q = input ? input.value.trim() : '';
+  if (!q) return;
+  // Use cached dropdown result if already rendered
+  const firstLink = dropdown ? dropdown.querySelector('a.search-result-item') : null;
+  if (firstLink) {
+    window.location.href = firstLink.href;
+    return;
+  }
+  // Fetch on-the-fly (e.g. if user pressed Enter before debounce fired)
+  if (!_searchProfiles) return;
+  try {
+    const results = await _searchProfiles(q);
+    if (results && results.length > 0) {
+      window.location.href = `profile.html?id=${encodeURIComponent(results[0].id)}`;
+    } else {
+      if (dropdown) renderSearchDropdown([], dropdown);
+    }
+  } catch (e) {
+    console.warn('Search navigate error:', e.message);
   }
 }
 
@@ -924,6 +1007,174 @@ window.connectWithOAuth      = connectWithOAuth;
 window.submitManualCount     = submitManualCount;
 window.resetSocialGate       = resetSocialGate;
 window.disconnectSocial      = disconnectSocial;
+window.startIdVerification   = startIdVerification;
+window.retryIdVerification   = retryIdVerification;
+window.openAuthModal         = openAuthModal;
+window.closeAuthModal        = closeAuthModal;
+
+// ─── Auth Modal ────────────────────────────────────────────────────────────────
+function openAuthModal(mode = 'signin') {
+  const modal   = document.getElementById('authModal');
+  const titleEl = document.getElementById('authModalTitle');
+  const descEl  = document.getElementById('authModalDesc');
+  if (!modal) return;
+  if (titleEl) titleEl.textContent = mode === 'signup' ? 'Create your Peepd account' : 'Sign in to Peepd';
+  if (descEl)  descEl.textContent  = mode === 'signup'
+    ? 'Sign up with LinkedIn or Facebook. We only request your public profile & connection count.'
+    : 'Connect with LinkedIn or Facebook to sign in. We only request your public profile & connection count.';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal(e) {
+  // If called from onclick on overlay, only close when clicking the backdrop itself
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('authModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ─── ID Verification Gate (Didit) ───────────────────────────────────────────────────
+const ID_SESSION_KEY = 'peepd_id_session';
+
+function getIdSession() {
+  try { return JSON.parse(localStorage.getItem(ID_SESSION_KEY)); } catch { return null; }
+}
+
+function saveIdSession(data) {
+  localStorage.setItem(ID_SESSION_KEY, JSON.stringify(data));
+}
+
+function getOrCreateReviewerSessionId() {
+  let stored = localStorage.getItem('peepd_reviewer_uid');
+  if (!stored) {
+    stored = crypto.randomUUID();
+    localStorage.setItem('peepd_reviewer_uid', stored);
+  }
+  return stored;
+}
+
+function showIdGateState(state) {
+  ['Default', 'Loading', 'Verifying', 'Approved', 'Declined'].forEach(s => {
+    const el = document.getElementById('igState' + s);
+    if (el) el.style.display = (s === state) ? '' : 'none';
+  });
+}
+
+/** On page load: check URL params (Didit callback) or existing session. */
+async function initIdGate() {
+  const gate = document.getElementById('idGate');
+  if (!gate) return;
+
+  // Already verified in this browser?
+  const existing = getIdSession();
+  if (existing && existing.verified) {
+    gate.classList.add('hidden');
+    return;
+  }
+
+  // Didit redirected back with ?verificationSessionId=xxx&status=Approved
+  const params = new URLSearchParams(window.location.search);
+  const diditSessionId = params.get('verificationSessionId');
+  const diditStatus    = params.get('status');
+
+  if (diditSessionId) {
+    // Clean the URL so a refresh doesn't re-trigger
+    const cleanUrl = window.location.pathname + (window.location.search
+      .replace(/[?&]verificationSessionId=[^&]*/g, '')
+      .replace(/[?&]status=[^&]*/g, '')
+      .replace(/^&/, '?') || '');
+    history.replaceState(null, '', cleanUrl);
+
+    if (diditStatus === 'Approved') {
+      // Optimistic: trust callback, but also verify server-side
+      showIdGateState('Verifying');
+      gate.classList.remove('hidden');
+      await confirmIdSession(diditSessionId);
+    } else {
+      // Declined or In Review
+      showIdGateState('Declined');
+      const descEl = document.getElementById('igDeclinedDesc');
+      if (descEl) descEl.textContent = `Verification returned status: "${diditStatus}". Please try again with a valid government ID.`;
+      gate.classList.remove('hidden');
+    }
+    return;
+  }
+
+  // Not yet verified — show gate
+  showIdGateState('Default');
+}
+
+/** User clicks "Verify My Identity" */
+async function startIdVerification() {
+  const gate = document.getElementById('idGate');
+  if (!gate) return;
+  showIdGateState('Loading');
+
+  if (!_createDiditSession) {
+    showToast('ID verification service is not configured yet. Set DIDIT_API_KEY and DIDIT_WORKFLOW_ID in Supabase.', 'error');
+    showIdGateState('Default');
+    return;
+  }
+
+  try {
+    const reviewerSessionId = getOrCreateReviewerSessionId();
+    const { url, session_id } = await _createDiditSession(reviewerSessionId);
+    // Save pending state
+    saveIdSession({ session_id, verified: false, started_at: new Date().toISOString() });
+    // Redirect to Didit hosted verification page
+    window.location.href = url;
+  } catch (e) {
+    console.error('Didit session creation failed:', e);
+    showToast('Could not start ID verification: ' + e.message, 'error');
+    showIdGateState('Default');
+  }
+}
+
+/** Verify the returned session ID against Didit's API */
+async function confirmIdSession(diditSessionId) {
+  const gate = document.getElementById('idGate');
+  if (!_verifyDiditSession) {
+    // Can't verify server-side — trust the URL param (dev mode)
+    saveIdSession({ session_id: diditSessionId, verified: true, verified_at: new Date().toISOString() });
+    showIdGateState('Approved');
+    setTimeout(() => {
+      if (gate) { gate.style.transition = 'opacity 0.4s'; gate.style.opacity = '0'; }
+      setTimeout(() => gate && gate.classList.add('hidden'), 420);
+    }, 1400);
+    showToast('Identity verified! You can now submit reviews.', 'success');
+    return;
+  }
+
+  try {
+    const result = await _verifyDiditSession(diditSessionId);
+    if (result.verified) {
+      saveIdSession({ session_id: diditSessionId, verified: true, verified_at: new Date().toISOString() });
+      showIdGateState('Approved');
+      showToast('Identity verified! You can now submit reviews.', 'success');
+      setTimeout(() => {
+        if (gate) { gate.style.transition = 'opacity 0.4s'; gate.style.opacity = '0'; }
+        setTimeout(() => gate && gate.classList.add('hidden'), 420);
+      }, 1400);
+    } else {
+      const descEl = document.getElementById('igDeclinedDesc');
+      if (descEl) descEl.textContent = `Verification status is "${result.status}". Please try again.`;
+      showIdGateState('Declined');
+    }
+  } catch (e) {
+    console.error('Didit verify error:', e);
+    const descEl = document.getElementById('igDeclinedDesc');
+    if (descEl) descEl.textContent = 'Could not confirm your verification result. Please try again.';
+    showIdGateState('Declined');
+  }
+}
+
+/** User clicks "Try Again" */
+function retryIdVerification() {
+  localStorage.removeItem(ID_SESSION_KEY);
+  showIdGateState('Default');
+}
 
 // ─── Social Verification Gate (OAuth-based) ─────────────────────────────────────
 const SOCIAL_SESSION_KEY = 'peepd_social_session';

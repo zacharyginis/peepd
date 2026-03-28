@@ -228,3 +228,51 @@ export async function getAuthSession() {
   if (error) throw error;
   return data.session;
 }
+
+// ─── Didit ID Verification ───────────────────────────────────────────────────
+
+const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
+
+/**
+ * Create a Didit verification session via the Edge Function.
+ * Returns { session_id, url } — redirect the user to `url`.
+ * @param {string} reviewerSessionId  UUID stored in localStorage
+ */
+export async function createDiditSession(reviewerSessionId) {
+  const res = await fetch(`${EDGE_BASE}/didit-create-session`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ reviewer_session_id: reviewerSessionId }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`createDiditSession failed (${res.status}): ${txt}`);
+  }
+  return res.json();
+}
+
+/**
+ * Verify a Didit session result via the Edge Function.
+ * Returns { verified: boolean, status: string }
+ * @param {string} sessionId  verificationSessionId from the Didit callback URL
+ */
+export async function verifyDiditSession(sessionId) {
+  const res = await fetch(`${EDGE_BASE}/didit-verify-session`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`verifyDiditSession failed (${res.status}): ${txt}`);
+  }
+  return res.json();
+}

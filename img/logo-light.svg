@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 115">
+  <!-- Stem of the 'p' -->
+  <rect x="10" y="43" width="15" height="72" rx="7.5" fill="#161616"/>
+  <!-- Ring (donut) — outer circle minus inner circle via evenodd -->
+  <path fill-rule="evenodd" fill="#161616"
+    d="M57,43 m-40,0 a40,40,0,1,0,80,0 a40,40,0,1,0,-80,0
+       M57,43 m-27,0 a27,27,0,1,0,54,0 a27,27,0,1,0,-54,0"/>
+  <!-- Orange center dot -->
+  <circle cx="57" cy="43" r="13" fill="#E05527"/>
+</svg>

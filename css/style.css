@@ -195,12 +195,13 @@ section           { padding: 100px 0; }
 }
 .nav__logo-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--purple), var(--cyan));
-  border-radius: 10px;
+  background: #ffffff;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  padding: 3px;
+  flex-shrink: 0;
 }
 .nav__logo-text {
   font-family: 'Sora', sans-serif;
@@ -226,6 +227,43 @@ section           { padding: 100px 0; }
 .nav__search input::placeholder { color: var(--text-muted); }
 .nav__search input:focus { border-color: var(--border-accent); background: var(--bg-card-hover); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
 .nav__search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none; }
+
+/* ── Search Dropdown ──────────────────────────────────────── */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 9999;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  animation: srDropFade 0.15s ease;
+}
+.search-dropdown.hidden { display: none; }
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background 0.13s;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover,
+.search-result-item.active { background: var(--bg-card-hover); }
+.search-result-item .avatar { width: 34px; height: 34px; font-size: 0.72rem; flex-shrink: 0; border-radius: 50%; }
+.search-result-info { flex: 1; min-width: 0; }
+.search-result-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-result-meta { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.search-result-score { font-size: 0.8rem; font-weight: 700; color: var(--purple); flex-shrink: 0; }
+.search-no-results { padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+.search-loading { padding: 14px 16px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+@keyframes srDropFade { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 .nav__links { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .nav__link {
   color: var(--text-secondary);
@@ -1011,3 +1049,76 @@ section           { padding: 100px 0; }
   color: var(--amber);
   line-height: 1.55;
 }
+
+/* ─── ID Verification Gate (Didit) ──────────────────────────────────── */
+.id-gate { z-index: 1100; } /* above social gate */
+
+.id-gate__icon {
+  background: rgba(6,182,212,0.12);
+  border-color: rgba(6,182,212,0.4);
+}
+.id-gate__icon i { color: var(--cyan); }
+
+/* ID verified badge on profile sidebar */
+.id-verified-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--green);
+  font-weight: 600;
+}
+.id-verified-card i { font-size: 1.1rem; flex-shrink: 0; }
+.id-verified-card__label { font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+
+/* ─── Auth Modal ───────────────────────────────────────────────────── */
+.auth-modal {
+  border-color: var(--border-accent);
+  position: relative;
+  padding: 40px 36px 32px;
+  max-width: 420px;
+}
+.auth-modal__close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.auth-modal__close:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.auth-modal__logo {
+  width: 52px; height: 52px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  padding: 5px;
+}
+.auth-modal__logo img { width: 100%; height: 100%; object-fit: contain; }
+.auth-modal h2 { font-size: 1.35rem; margin-bottom: 8px; }
+.auth-modal p  { font-size: 0.84rem; margin-bottom: 24px; }
+.auth-modal__platforms {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.auth-modal__platforms .social-platform-btn { justify-content: center; }
+.auth-modal__note {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  margin-bottom: 0 !important;
+  line-height: 1.55;
+}
+.auth-modal__note a { color: var(--purple); text-decoration: none; }
+.auth-modal__note a:hover { text-decoration: underline; }
+

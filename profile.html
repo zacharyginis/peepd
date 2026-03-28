@@ -14,10 +14,7 @@
     <div class="nav__inner">
       <a href="index.html" class="nav__logo">
         <div class="nav__logo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
         </div>
         <span class="nav__logo-text">Peepd</span>
       </a>
@@ -31,8 +28,8 @@
         <li><a href="write-review.html" class="nav__link">Write a Review</a></li>
       </ul>
       <div class="nav__actions">
-        <a href="#" class="btn btn--ghost btn--sm">Sign In</a>
-        <a href="#" class="btn btn--primary btn--sm">Join Free</a>
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openAuthModal('signup')">Sign Up</button>
       </div>
     </div>
   </nav>
@@ -469,6 +466,9 @@
             <div class="lockout-card__badge"><i class="fas fa-shield-halved"></i> 0 self-reviews detected</div>
           </div>
 
+          <!-- ID Verification Badge -->
+          <div id="profileIdCard" class="social-verify-card" style="display:none;"></div>
+
           <!-- Social Verification -->
           <div id="profileSocialCard" class="social-verify-card">
             <h3><i class="fas fa-link" style="color:var(--cyan);"></i> Social Verification</h3>
@@ -491,9 +491,37 @@
   <!-- ── Footer ─────────────────────────────────────────────── -->
   <footer style="background:var(--bg-surface); border-top:1px solid var(--border-subtle); padding:24px 0; text-align:center;">
     <div class="container">
-      <p style="font-size:0.78rem; color:var(--text-muted);">© 2026 Peepd Inc. · <a href="index.html" style="color:var(--purple);">Home</a> · <a href="write-review.html" style="color:var(--purple);">Write a Review</a></p>
+      <p style="font-size:0.78rem; color:var(--text-muted);">© 2026 Peepd Inc. · <a href="index.html" style="color:var(--purple);">Home</a> · <a href="write-review.html" style="color:var(--purple);">Write a Review</a> · <a href="privacy-policy.html" style="color:var(--purple);">Privacy</a> · <a href="terms-of-service.html" style="color:var(--purple);">Terms</a> · <a href="cookie-policy.html" style="color:var(--purple);">Cookies</a></p>
     </div>
   </footer>
+
+  <!-- ── Auth Modal ──────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+      <div class="auth-modal__logo">
+        <img src="img/logo-light.svg" alt="Peepd" />
+      </div>
+      <h2 id="authModalTitle">Sign in to Peepd</h2>
+      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in. We only request your public profile &amp; connection count.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
+          <i class="fab fa-linkedin"></i>
+          <span>Continue with LinkedIn</span>
+        </button>
+        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
+          <i class="fab fa-facebook"></i>
+          <span>Continue with Facebook</span>
+        </button>
+      </div>
+      <p class="auth-modal__note">
+        <i class="fas fa-lock"></i>
+        Your data is never shared. By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
 </body>

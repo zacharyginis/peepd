@@ -14,10 +14,7 @@
     <div class="nav__inner">
       <a href="index.html" class="nav__logo">
         <div class="nav__logo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
         </div>
         <span class="nav__logo-text">Peepd</span>
       </a>
@@ -31,8 +28,8 @@
         <li><a href="write-review.html" class="nav__link active">Write a Review</a></li>
       </ul>
       <div class="nav__actions">
-        <a href="#" class="btn btn--ghost btn--sm">Sign In</a>
-        <a href="#" class="btn btn--primary btn--sm">Join Free</a>
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openAuthModal('signup')">Sign Up</button>
       </div>
     </div>
   </nav>
@@ -380,6 +377,66 @@
 
   </div>
 
+  <!-- ── ID Verification Gate (Didit) ────────────────────────── -->
+  <div id="idGate" class="social-gate id-gate">
+
+    <!-- State: Default —— ask user to verify -->
+    <div class="social-gate__inner" id="igStateDefault">
+      <div class="social-gate__icon id-gate__icon">
+        <i class="fas fa-id-card"></i>
+      </div>
+      <h2>Verify Your Identity</h2>
+      <p>
+        To protect the people being reviewed, every reviewer must complete a
+        <strong>one-time government ID&nbsp;+ face scan</strong> before submitting.
+        Takes under&nbsp;60&nbsp;seconds. Your identity is never shared publicly.
+      </p>
+      <button class="btn btn--primary" style="width:100%; margin-top:8px;" onclick="startIdVerification()">
+        <i class="fas fa-fingerprint"></i>&nbsp; Verify My Identity
+      </button>
+      <p class="social-gate__note" style="margin-top:16px;">
+        <i class="fas fa-lock"></i>
+        Powered by Didit &nbsp;·&nbsp; GDPR compliant &nbsp;·&nbsp; ISO 27001 certified
+      </p>
+    </div>
+
+    <!-- State: Loading —— creating session -->
+    <div class="social-gate__inner sg-center" id="igStateLoading" style="display:none;">
+      <i class="fas fa-circle-notch fa-spin" style="font-size:2.8rem; color:var(--cyan); margin-bottom:24px;"></i>
+      <h2>Launching verification…</h2>
+      <p>Opening the identity check — you'll be redirected in a moment.</p>
+    </div>
+
+    <!-- State: Verifying —— came back from Didit, checking result -->
+    <div class="social-gate__inner sg-center" id="igStateVerifying" style="display:none;">
+      <i class="fas fa-circle-notch fa-spin" style="font-size:2.8rem; color:var(--cyan); margin-bottom:24px;"></i>
+      <h2>Confirming your result…</h2>
+      <p>Checking your verification status with Didit — just a second.</p>
+    </div>
+
+    <!-- State: Approved -->
+    <div class="social-gate__inner sg-center" id="igStateApproved" style="display:none;">
+      <div class="social-gate__icon" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4);">
+        <i class="fas fa-circle-check" style="color:var(--green);"></i>
+      </div>
+      <h2>Identity Verified ✓</h2>
+      <p>Your government ID and face scan passed. You can now submit reviews.</p>
+    </div>
+
+    <!-- State: Declined / failed -->
+    <div class="social-gate__inner sg-center" id="igStateDeclined" style="display:none;">
+      <div class="social-gate__icon" style="background:rgba(239,68,68,0.15); border-color:rgba(239,68,68,0.4);">
+        <i class="fas fa-circle-xmark" style="color:var(--red);"></i>
+      </div>
+      <h2>Verification Unsuccessful</h2>
+      <p id="igDeclinedDesc">We couldn't confirm your identity. Please try again with a valid government ID.</p>
+      <button class="btn btn--secondary" style="width:100%; margin-top:16px;" onclick="retryIdVerification()">
+        <i class="fas fa-rotate-right"></i> Try Again
+      </button>
+    </div>
+
+  </div>
+
   <!-- ── Self-Review Modal ───────────────────────────────────── -->
   <div class="modal-overlay" id="selfReviewModal">
     <div class="modal modal--danger">
@@ -427,6 +484,34 @@
           <i class="fas fa-home"></i> Back to Home
         </a>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Auth Modal ──────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+      <div class="auth-modal__logo">
+        <img src="img/logo-light.svg" alt="Peepd" />
+      </div>
+      <h2 id="authModalTitle">Sign in to Peepd</h2>
+      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in. We only request your public profile &amp; connection count.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
+          <i class="fab fa-linkedin"></i>
+          <span>Continue with LinkedIn</span>
+        </button>
+        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
+          <i class="fab fa-facebook"></i>
+          <span>Continue with Facebook</span>
+        </button>
+      </div>
+      <p class="auth-modal__note">
+        <i class="fas fa-lock"></i>
+        Your data is never shared. By continuing you agree to our <a href="terms-of-service.html">Terms</a> &amp; <a href="privacy-policy.html">Privacy Policy</a>.
+      </p>
     </div>
   </div>
 
