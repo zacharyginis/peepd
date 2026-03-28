@@ -225,6 +225,45 @@
                   <span id="charWarning" class="char-warning" style="display:none;"><i class="fas fa-circle-info"></i> Min. 80 characters required for review to be accepted</span>
                   <span id="charCounter" class="char-counter">0 / 1200</span>
                 </div>
+
+                <!-- LinkedIn Import (shown once LinkedIn-verified) -->
+                <div id="liImportSection" style="display:none; margin-top:14px;">
+                  <label class="li-import-toggle">
+                    <input type="checkbox" id="liImportCheck" class="pledge-checkbox" onchange="toggleLinkedInImport(this.checked)" />
+                    <span class="pledge-custom-check"><i class="fas fa-check"></i></span>
+                    <span class="li-import-label">
+                      <span><i class="fab fa-linkedin" style="color:#0A66C2; margin-right:4px;"></i>Import from my LinkedIn recommendations</span>
+                      <span class="li-import-sub">Auto-fill with a recommendation you wrote on LinkedIn</span>
+                    </span>
+                  </label>
+                  <div id="liImportPanel" class="li-import-panel" style="display:none;">
+                    <div id="liPanelLoading" class="li-panel-loading">
+                      <i class="fas fa-circle-notch fa-spin"></i> Fetching your LinkedIn recommendations&hellip;
+                    </div>
+                    <div id="liPanelResults" style="display:none;">
+                      <p class="li-panel-hint">Select a recommendation you wrote to auto-fill this review:</p>
+                      <div id="liRecList" class="li-rec-list"></div>
+                    </div>
+                    <div id="liPanelPaste" style="display:none;">
+                      <div class="li-paste-hint">
+                        <i class="fab fa-linkedin" style="color:#0A66C2; font-size:1.4rem; flex-shrink:0; margin-top:2px;"></i>
+                        <div>
+                          <strong>Paste your LinkedIn recommendation</strong>
+                          <span>On LinkedIn, go to the person&rsquo;s profile &rarr; Recommendations &rarr; copy the text of the recommendation you wrote for them.</span>
+                        </div>
+                      </div>
+                      <textarea id="liPasteArea" class="review-textarea" style="margin-top:10px;" placeholder="Paste your LinkedIn recommendation text here&hellip;" rows="4" oninput="updateLiPasteCount()"></textarea>
+                      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+                        <button type="button" class="btn btn--ghost btn--sm" onclick="clearLiImport()">Cancel</button>
+                        <button type="button" class="btn btn--primary btn--sm" id="liApplyBtn" disabled onclick="applyLiPasteText()">
+                          <i class="fas fa-arrow-down"></i> Use this text
+                        </button>
+                      </div>
+                    </div>
+                    <div id="liPanelSuccess" style="display:none; align-items:center; gap:10px; font-size:0.85rem; color:var(--text-secondary);"></div>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Step 5: Accuracy Pledge -->

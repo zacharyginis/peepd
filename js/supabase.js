@@ -256,6 +256,26 @@ export async function createDiditSession(reviewerSessionId) {
 }
 
 /**
+ * Fetch LinkedIn recommendations written BY the authenticated user.
+ * Proxied via Edge Function to avoid CORS.
+ * Returns { recommendations: Array, scope_denied?: boolean }
+ * @param {string} accessToken  LinkedIn OAuth provider_token
+ */
+export async function fetchLinkedInRecommendations(accessToken) {
+  const res = await fetch(`${EDGE_BASE}/linkedin-fetch-recs`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ access_token: accessToken }),
+  });
+  if (!res.ok) throw new Error(`linkedin-fetch-recs failed: ${res.status}`);
+  return res.json();
+}
+
+/**
  * Verify a Didit session result via the Edge Function.
  * Returns { verified: boolean, status: string }
  * @param {string} sessionId  verificationSessionId from the Didit callback URL

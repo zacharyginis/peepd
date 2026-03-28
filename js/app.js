@@ -14,7 +14,8 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _castAccuracyVote, _subscribeToReviews, _subscribeToScore,
     _getSocialConnections, _saveSocialConnection,
     _signInWithOAuthProvider, _getAuthSession,
-    _createDiditSession, _verifyDiditSession;
+    _createDiditSession, _verifyDiditSession,
+    _fetchLinkedInRecommendations;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -33,8 +34,9 @@ async function loadSupabase() {
     _saveSocialConnection    = mod.saveSocialConnection;
     _signInWithOAuthProvider = mod.signInWithOAuthProvider;
     _getAuthSession          = mod.getAuthSession;
-    _createDiditSession      = mod.createDiditSession;
-    _verifyDiditSession      = mod.verifyDiditSession;
+    _createDiditSession           = mod.createDiditSession;
+    _verifyDiditSession           = mod.verifyDiditSession;
+    _fetchLinkedInRecommendations = mod.fetchLinkedInRecommendations;
 
     // Listen for OAuth callback on the write-review page
     if (document.getElementById('socialGate')) {
@@ -1011,6 +1013,11 @@ window.startIdVerification   = startIdVerification;
 window.retryIdVerification   = retryIdVerification;
 window.openAuthModal         = openAuthModal;
 window.closeAuthModal        = closeAuthModal;
+window.toggleLinkedInImport  = toggleLinkedInImport;
+window.applyLinkedInRec      = applyLinkedInRec;
+window.clearLiImport         = clearLiImport;
+window.applyLiPasteText      = applyLiPasteText;
+window.updateLiPasteCount    = updateLiPasteCount;
 
 // ─── Auth Modal ────────────────────────────────────────────────────────────────
 function openAuthModal(mode = 'signin') {
@@ -1252,6 +1259,12 @@ function showConnectedBanner(session) {
     <button class="btn btn--ghost btn--sm" style="margin-left:auto;font-size:0.72rem;padding:4px 10px;" onclick="disconnectSocial()">Disconnect</button>
   `;
   banner.style.display = 'flex';
+
+  // Reveal LinkedIn import section on write-review page
+  if (p === 'linkedin') {
+    const liSection = document.getElementById('liImportSection');
+    if (liSection) liSection.style.display = '';
+  }
 }
 
 // Redirect to Facebook / LinkedIn OAuth via Supabase
@@ -1275,6 +1288,12 @@ async function handleSocialOAuthCallback(session) {
 
   const provider      = session.user?.app_metadata?.provider;
   const providerToken = session.provider_token;
+
+  // Persist LinkedIn token for recommendations import (same-tab lifetime)
+  if (provider === 'linkedin_oidc' && providerToken) {
+    sessionStorage.setItem('peepd_li_token', providerToken);
+  }
+
   const platformNames = { facebook: 'Facebook', linkedin_oidc: 'LinkedIn' };
   const pName         = platformNames[provider] || provider;
 
@@ -1358,6 +1377,104 @@ async function fetchLinkedInConnectionCount(accessToken) {
     }
   } catch {}
   return null;
+}
+
+// ─── LinkedIn Recommendations Import (write-review.html) ─────────────────────
+
+function toggleLinkedInImport(checked) {
+  const panel = document.getElementById('liImportPanel');
+  if (!panel) return;
+  if (checked) {
+    panel.style.display = '';
+    loadLinkedInRecommendations();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function loadLinkedInRecommendations() {
+  showLiPanelState('Loading');
+  const token = sessionStorage.getItem('peepd_li_token');
+
+  if (!token || !_fetchLinkedInRecommendations) {
+    showLiPanelState('Paste');
+    return;
+  }
+
+  try {
+    const result = await _fetchLinkedInRecommendations(token);
+    const recs   = result.recommendations || [];
+
+    if (recs.length === 0 || result.scope_denied) {
+      showLiPanelState('Paste');
+      return;
+    }
+
+    const list = document.getElementById('liRecList');
+    if (list) {
+      list.innerHTML = recs.map(r => {
+        const name     = escHtml(r.recommendee_name || 'Unknown');
+        const headline = escHtml(r.recommendee_headline || '');
+        const excerpt  = escHtml(r.text || '');
+        const rawText  = JSON.stringify(r.text || '');
+        const rawName  = JSON.stringify(r.recommendee_name || 'LinkedIn');
+        return `
+          <div class="li-rec-card" onclick="applyLinkedInRec(${rawText}, ${rawName})">
+            <div class="li-rec-card__name">${name}</div>
+            ${headline ? `<div class="li-rec-card__headline">${headline}</div>` : ''}
+            <div class="li-rec-card__excerpt">${excerpt}</div>
+          </div>`;
+      }).join('');
+    }
+    showLiPanelState('Results');
+  } catch (e) {
+    console.warn('LinkedIn recs fetch error:', e);
+    showLiPanelState('Paste');
+  }
+}
+
+function showLiPanelState(state) {
+  ['Loading', 'Results', 'Paste', 'Success'].forEach(s => {
+    const el = document.getElementById('liPanel' + s);
+    if (el) el.style.display = (s === state) ? '' : 'none';
+  });
+}
+
+function applyLinkedInRec(text, name) {
+  const textarea = document.getElementById('reviewText');
+  if (textarea) {
+    textarea.value = text;
+    updateCharCounter();
+  }
+  const successEl = document.getElementById('liPanelSuccess');
+  if (successEl) {
+    successEl.style.display = 'flex';
+    successEl.innerHTML = `
+      <i class="fas fa-circle-check" style="color:var(--green);"></i>
+      Imported recommendation for <strong>${escHtml(name)}</strong>. You can still edit the text below.
+      <button type="button" class="btn btn--ghost btn--sm" onclick="clearLiImport()" style="margin-left:auto; font-size:0.72rem; padding:4px 10px;">Clear</button>
+    `;
+  }
+  showLiPanelState('Success');
+}
+
+function clearLiImport() {
+  const check = document.getElementById('liImportCheck');
+  const panel = document.getElementById('liImportPanel');
+  if (check) check.checked = false;
+  if (panel) panel.style.display = 'none';
+}
+
+function updateLiPasteCount() {
+  const ta  = document.getElementById('liPasteArea');
+  const btn = document.getElementById('liApplyBtn');
+  if (ta && btn) btn.disabled = ta.value.trim().length < 20;
+}
+
+function applyLiPasteText() {
+  const ta = document.getElementById('liPasteArea');
+  if (!ta || ta.value.trim().length < 20) return;
+  applyLinkedInRec(ta.value.trim(), 'LinkedIn');
 }
 
 async function submitManualCount() {
