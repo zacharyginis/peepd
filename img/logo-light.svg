@@ -1,15 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 116">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82 120">
   <!--
-    Stem: full-height bar, x=8..23 (right edge=23).
-    Ring: outer r=33, center cx=56 → left edge=56-33=23 = stem right edge.
-    Perfect tangent — no gap, no ugly overlap.
+    Stem right edge = x:19.
+    Ring center = (50, 40), outer r=31 → left edge = 50-31 = 19 = stem right. Perfect flush join.
+    Ring inner left = 50-18 = 32 → inner cutout never intrudes into the stem.
+    Both shapes share #161616 so they visually merge into one P silhouette.
   -->
-  <!-- Full-height stem (ascender + descender) -->
-  <rect x="8" y="0" width="15" height="116" rx="7.5" fill="#161616"/>
-  <!-- Bowl ring: outer r=33, inner r=20, centered at (56,38) -->
+
+  <!-- Full-height stem -->
+  <rect x="5" y="4" width="14" height="112" rx="7" fill="#161616"/>
+
+  <!-- Bowl ring: outer r=31, inner r=18, center (50, 40) -->
   <path fill-rule="evenodd" fill="#161616"
-    d="M56,38 m-33,0 a33,33,0,1,0,66,0 a33,33,0,1,0,-66,0
-       M56,38 m-20,0 a20,20,0,1,0,40,0 a20,20,0,1,0,-40,0"/>
-  <!-- Orange center dot -->
-  <circle cx="56" cy="38" r="9" fill="#E05527"/>
+    d="M 19,40 a31,31 0 1,0 62,0 a31,31 0 1,0 -62,0
+       M 32,40 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0"/>
+
+  <!-- Orange dot centred in bowl -->
+  <circle cx="50" cy="40" r="9" fill="#E05527"/>
 </svg>
