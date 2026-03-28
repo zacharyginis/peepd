@@ -30,7 +30,7 @@
       </ul>
       <div class="nav__actions">
         <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
-        <button class="btn btn--primary btn--sm" onclick="openAuthModal('signup')">Sign Up</button>
+        <button class="btn btn--primary btn--sm" onclick="openWaitlistModal()">Join Waitlist</button>
       </div>
     </div>
   </nav>
@@ -66,6 +66,12 @@
           <i class="fas fa-lock" style="font-size:0.72rem; margin-right:4px;"></i>
           You cannot review yourself
         </p>
+        <div class="hero__waitlist-row">
+          <button class="btn btn--primary" onclick="openWaitlistModal()">
+            <i class="fas fa-list-ul"></i> Join the Waitlist
+          </button>
+          <span class="hero__waitlist-note">Be first when we open publicly</span>
+        </div>
         <div class="hero__stats">
           <div class="hero__stat">
             <div class="hero__stat-value">2.4M+</div>
@@ -408,7 +414,7 @@
         <h2>Discover your <span class="gradient-text">Peep Score</span></h2>
         <p>Create a profile and invite your network. See the reviews come in.<br/>Your reputation is already being built — you just can't see it yet.</p>
         <div class="cta-actions">
-          <a href="#" class="btn btn--primary btn--lg"><i class="fas fa-user-plus"></i> Create My Profile</a>
+          <button class="btn btn--primary btn--lg" onclick="openWaitlistModal()"><i class="fas fa-list-ul"></i> Join the Waitlist</button>
           <a href="profile.html" class="btn btn--secondary btn--lg"><i class="fas fa-eye"></i> View a Demo Profile</a>
         </div>
       </div>
@@ -492,6 +498,77 @@
         <i class="fas fa-lock"></i>
         Your data is never shared. By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.
       </p>
+    </div>
+  </div>
+
+  <!-- ── Waitlist Modal ─────────────────────────────────────── -->
+  <div class="modal-overlay" id="waitlistModal" onclick="closeWaitlistModal(event)">
+    <div class="modal waitlist-modal">
+      <button class="auth-modal__close" onclick="closeWaitlistModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+
+      <!-- Form state -->
+      <div id="wlStateForm">
+        <div class="waitlist-modal__header">
+          <div class="waitlist-modal__icon"><i class="fas fa-list-ul"></i></div>
+          <h2>Join the Waitlist</h2>
+          <p>Be among the first to get access when Peepd opens to the public.</p>
+        </div>
+        <form id="waitlistForm" novalidate>
+          <div class="wl-field-row">
+            <div class="wl-field">
+              <label class="wl-label" for="wlName">Full Name <span class="wl-required">*</span></label>
+              <input type="text" id="wlName" class="social-input" placeholder="Jane Smith" autocomplete="name" />
+            </div>
+            <div class="wl-field">
+              <label class="wl-label" for="wlEmail">Email <span class="wl-required">*</span></label>
+              <input type="email" id="wlEmail" class="social-input" placeholder="jane@example.com" autocomplete="email" />
+            </div>
+          </div>
+          <div class="wl-field-row">
+            <div class="wl-field">
+              <label class="wl-label" for="wlLinkedin">LinkedIn URL</label>
+              <input type="url" id="wlLinkedin" class="social-input" placeholder="https://linkedin.com/in/..." autocomplete="off" />
+            </div>
+            <div class="wl-field">
+              <label class="wl-label" for="wlBirthdate">Date of Birth <span class="wl-required">*</span></label>
+              <input type="date" id="wlBirthdate" class="social-input" />
+            </div>
+          </div>
+          <div class="wl-field">
+            <label class="wl-label" for="wlSource">How did you find us? <span class="wl-required">*</span></label>
+            <select id="wlSource" class="social-input">
+              <option value="">— Select one —</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="twitter_x">X / Twitter</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="google">Google Search</option>
+              <option value="friend">A friend told me</option>
+              <option value="word_of_mouth">Word of mouth</option>
+              <option value="press">Press / Media</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div id="wlError" class="wl-error" style="display:none;"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%; margin-top:4px;" id="wlSubmitBtn">
+            <i class="fas fa-paper-plane"></i> Request Access
+          </button>
+        </form>
+        <p class="auth-modal__note" style="margin-top:14px;">
+          <i class="fas fa-lock"></i>
+          We’ll never spam you. By joining you agree to our <a href="privacy-policy.html">Privacy Policy</a>.
+        </p>
+      </div>
+
+      <!-- Success state -->
+      <div id="wlStateSuccess" style="display:none; text-align:center; padding:8px 0;">
+        <div class="waitlist-modal__success-icon"><i class="fas fa-circle-check"></i></div>
+        <h2 style="margin-bottom:10px;">You’re on the list! 🎉</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">We’ll email you at <strong id="wlSuccessEmail"></strong> when Peepd opens up. You’ll be among the first to know.</p>
+        <button class="btn btn--secondary" style="width:100%;" onclick="closeWaitlistModal()">Close</button>
+      </div>
     </div>
   </div>
 

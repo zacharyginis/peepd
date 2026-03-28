@@ -15,7 +15,8 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _getSocialConnections, _saveSocialConnection,
     _signInWithOAuthProvider, _getAuthSession,
     _createDiditSession, _verifyDiditSession,
-    _fetchLinkedInRecommendations;
+    _fetchLinkedInRecommendations,
+    _saveWaitlistEntry;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -37,6 +38,7 @@ async function loadSupabase() {
     _createDiditSession           = mod.createDiditSession;
     _verifyDiditSession           = mod.verifyDiditSession;
     _fetchLinkedInRecommendations = mod.fetchLinkedInRecommendations;
+    _saveWaitlistEntry            = mod.saveWaitlistEntry;
 
     // Listen for OAuth callback on the write-review page
     if (document.getElementById('socialGate')) {
@@ -93,6 +95,7 @@ function init() {
   initSearch();
   initSocialGate();
   initIdGate();
+  initWaitlistForm();
   initProfileSocialConnections();
   loadTopProfiles();
   // Profile page: load live data
@@ -1018,6 +1021,8 @@ window.applyLinkedInRec      = applyLinkedInRec;
 window.clearLiImport         = clearLiImport;
 window.applyLiPasteText      = applyLiPasteText;
 window.updateLiPasteCount    = updateLiPasteCount;
+window.openWaitlistModal     = openWaitlistModal;
+window.closeWaitlistModal    = closeWaitlistModal;
 
 // ─── Auth Modal ────────────────────────────────────────────────────────────────
 function openAuthModal(mode = 'signin') {
@@ -1040,6 +1045,80 @@ function closeAuthModal(e) {
   if (!modal) return;
   modal.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ─── Waitlist Modal ────────────────────────────────────────────────────────────
+function initWaitlistForm() {
+  const form = document.getElementById('waitlistForm');
+  if (!form) return;
+  form.addEventListener('submit', submitWaitlist);
+}
+
+function openWaitlistModal() {
+  const modal = document.getElementById('waitlistModal');
+  if (!modal) return;
+  document.getElementById('wlStateForm').style.display    = '';
+  document.getElementById('wlStateSuccess').style.display = 'none';
+  const errEl = document.getElementById('wlError');
+  if (errEl) errEl.style.display = 'none';
+  const form = document.getElementById('waitlistForm');
+  if (form) form.reset();
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWaitlistModal(e) {
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('waitlistModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitWaitlist(e) {
+  if (e) e.preventDefault();
+  const name      = document.getElementById('wlName')?.value.trim();
+  const email     = document.getElementById('wlEmail')?.value.trim();
+  const linkedin  = document.getElementById('wlLinkedin')?.value.trim();
+  const birthdate = document.getElementById('wlBirthdate')?.value;
+  const source    = document.getElementById('wlSource')?.value;
+  const errEl     = document.getElementById('wlError');
+  const submitBtn = document.getElementById('wlSubmitBtn');
+
+  const showErr = (msg) => {
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  };
+
+  if (!name)                                          return showErr('Please enter your full name.');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showErr('Please enter a valid email address.');
+  if (!birthdate)                                     return showErr('Please enter your date of birth.');
+  if (!source)                                        return showErr('Please tell us how you found Peepd.');
+
+  if (errEl) errEl.style.display = 'none';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…'; }
+
+  const entry = {
+    full_name:       name,
+    email:           email,
+    linkedin_url:    linkedin  || null,
+    birthdate:       birthdate || null,
+    referral_source: source,
+  };
+
+  try {
+    if (_saveWaitlistEntry) {
+      await _saveWaitlistEntry(entry);
+    }
+    document.getElementById('wlStateForm').style.display    = 'none';
+    document.getElementById('wlStateSuccess').style.display = '';
+    const emailDisplay = document.getElementById('wlSuccessEmail');
+    if (emailDisplay) emailDisplay.textContent = email;
+  } catch (err) {
+    const dup = err?.message?.includes('duplicate') || err?.message?.includes('unique');
+    showErr(dup ? 'That email is already on the waitlist!' : 'Something went wrong. Please try again.');
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Access'; }
+  }
 }
 
 // ─── ID Verification Gate (Didit) ───────────────────────────────────────────────────

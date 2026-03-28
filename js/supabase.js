@@ -276,6 +276,20 @@ export async function fetchLinkedInRecommendations(accessToken) {
 }
 
 /**
+ * Add a new entry to the waitlist table.
+ * @param {{ full_name: string, email: string, linkedin_url?: string, birthdate?: string, referral_source: string }} entry
+ */
+export async function saveWaitlistEntry(entry) {
+  const { data, error } = await supabase
+    .from('waitlist')
+    .insert([entry])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Verify a Didit session result via the Edge Function.
  * Returns { verified: boolean, status: string }
  * @param {string} sessionId  verificationSessionId from the Didit callback URL

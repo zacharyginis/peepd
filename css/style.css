@@ -1220,3 +1220,97 @@ section           { padding: 100px 0; }
   font-size: 0.875rem;
 }
 
+/* ── Hero waitlist row ─────────────────────────────────────────────────────── */
+.hero__waitlist-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.hero__waitlist-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Waitlist Modal ────────────────────────────────────────────────────────── */
+.waitlist-modal {
+  width: min(560px, 95vw);
+  padding: 36px;
+}
+.waitlist-modal__header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.waitlist-modal__icon {
+  width: 52px;
+  height: 52px;
+  background: rgba(224, 85, 39, 0.15);
+  border: 1px solid rgba(224, 85, 39, 0.35);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 1.4rem;
+  color: var(--purple);
+}
+.waitlist-modal h2 {
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+}
+.waitlist-modal p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+.wl-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 520px) {
+  .wl-field-row { grid-template-columns: 1fr; }
+}
+.wl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.wl-field-row .wl-field {
+  margin-bottom: 0;
+}
+.wl-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.wl-required {
+  color: var(--purple);
+}
+.wl-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #FCA5A5;
+  margin-bottom: 12px;
+}
+.waitlist-modal__success-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 1.8rem;
+  color: var(--green);
+}

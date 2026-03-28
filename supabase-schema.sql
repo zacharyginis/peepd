@@ -230,3 +230,18 @@ values
   ('Carlos Bravo',  'Founder',                 'Self',   'Miami, FL',         'CB', 'avatar-5', 604, 18, 81.0, false),
   ('Taylor Hayes',  'UX Researcher',           'Apple',  'Seattle, WA',       'TH', 'avatar-6', 778, 31, 91.0, false)
 on conflict do nothing;
+-- ── Waitlist ───────────────────────────────────────────────────────────────────
+create table if not exists public.waitlist (
+  id              uuid primary key default uuid_generate_v4(),
+  created_at      timestamptz not null default now(),
+  full_name       text not null,
+  email           text not null unique,
+  linkedin_url    text,
+  birthdate       date,
+  referral_source text,
+  status          text not null default 'pending'
+                    check (status in ('pending', 'approved', 'rejected'))
+);
+alter table public.waitlist enable row level security;
+create policy "Anyone can join waitlist"
+  on public.waitlist for insert with check (true);
