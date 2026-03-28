@@ -1481,6 +1481,24 @@ async function loadMyProfilePage() {
   } catch (err) {
     console.error('Profile load failed:', err);
     if (loading) loading.style.display = 'none';
+    // Show a helpful error rather than a blank page
+    if (noSession) {
+      noSession.style.display = 'flex';
+      const isRLS = err?.message?.includes('policy') || err?.code === '42501';
+      noSession.innerHTML = `
+        <i class="fas fa-circle-exclamation" style="font-size:3rem; color:var(--border-accent); margin-bottom:8px;"></i>
+        <h2>Couldn't load your profile</h2>
+        <p style="color:var(--text-muted); max-width:400px; line-height:1.7;">${
+          isRLS
+            ? 'A database permission error occurred. Please apply the latest migration in Supabase (supabase/migrations/20260328150000_profile_auth_and_columns.sql).'
+            : (err?.message || 'Something went wrong. Please try again.')
+        }</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <button class="btn btn--primary btn--lg" onclick="window.location.reload()"><i class="fas fa-rotate-right"></i> Retry</button>
+          <button class="btn btn--ghost btn--lg" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+        </div>
+      `;
+    }
     return;
   }
   if (!profile) { if (loading) loading.style.display = 'none'; return; }

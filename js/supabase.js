@@ -300,6 +300,7 @@ export async function signOut() {
  * @param {object} user  supabase auth user object
  */
 export async function getOrCreateMyProfile(user) {
+  // First, try to find an existing profile linked to this auth user
   const { data: existing, error: fe } = await supabase
     .from('profiles')
     .select('*')
@@ -319,7 +320,20 @@ export async function getOrCreateMyProfile(user) {
     .insert([{ full_name: raw, initials, avatar_class: avatarClass, user_id: user.id }])
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    // If INSERT failed due to a race condition or constraint, try SELECT again
+    if (error.code === '23505' || error.code === '42501' || error.message?.includes('policy')) {
+      const { data: retry, error: re } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (re) throw re;
+      if (retry) return retry;
+    }
+    throw error;
+  }
   return data;
 }
 
