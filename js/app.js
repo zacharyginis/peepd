@@ -1207,31 +1207,43 @@ function initSocialGate() {
   const gate = document.getElementById('socialGate');
   if (!gate) return;
 
-  // Already have a valid local social session
+  // Already have a valid local social session — stay hidden
   const socialSession = getSocialSession();
   if (socialSession && socialSession.auth_verified) {
-    gate.classList.add('hidden');
     showConnectedBanner(socialSession);
     return;
   }
 
-  // Check if there's an existing Supabase auth session (e.g. page refresh after OAuth)
-  // provider_token is NOT available on refresh — auto-approve based on the OAuth sign-in itself
+  // Check for an existing Supabase auth session (OAuth return or page refresh)
   if (_getAuthSession) {
     _getAuthSession().then(session => {
-      if (!session) return;
-      const provider = session.user?.app_metadata?.provider;
-      if ((provider === 'facebook' || provider === 'linkedin_oidc') && !getSocialSession()) {
-        const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
-        const handle      = session.user?.user_metadata?.full_name
-                         || session.user?.user_metadata?.name
-                         || session.user?.email || '';
-        const sessionData = { platform, handle, follower_count: 0, auth_verified: true, auth_user_id: session.user.id, verified_at: new Date().toISOString() };
-        saveSocialSession(sessionData);
-        gate.classList.add('hidden');
-        showConnectedBanner(sessionData);
+      if (session) {
+        const provider = session.user?.app_metadata?.provider;
+        if (provider === 'facebook' || provider === 'linkedin_oidc') {
+          // Already OAuth-authenticated — auto-approve, gate stays hidden
+          const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
+          const handle      = session.user?.user_metadata?.full_name
+                           || session.user?.user_metadata?.name
+                           || session.user?.email || '';
+          if (!getSocialSession()) {
+            const sessionData = { platform, handle, follower_count: 0, auth_verified: true, auth_user_id: session.user.id, verified_at: new Date().toISOString() };
+            saveSocialSession(sessionData);
+            showConnectedBanner(sessionData);
+          }
+          return;
+        }
       }
-    }).catch(() => {});
+      // Definitively not signed in — show the gate
+      showSocialGateState('Default');
+      gate.classList.remove('hidden');
+    }).catch(() => {
+      showSocialGateState('Default');
+      gate.classList.remove('hidden');
+    });
+  } else {
+    // Demo mode — show the gate
+    showSocialGateState('Default');
+    gate.classList.remove('hidden');
   }
 }
 

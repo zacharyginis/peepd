@@ -212,7 +212,7 @@ export async function signInWithOAuthProvider(provider) {
     provider,
     options: {
       scopes:     scopeMap[provider] || '',
-      redirectTo: window.location.origin + '/write-review.html',
+      redirectTo: window.location.origin + window.location.pathname,
     },
   });
   if (error) throw error;
