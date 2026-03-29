@@ -6,7 +6,8 @@
  *   import { supabase } from './supabase.js';
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+// createClient is provided by the UMD bundle injected by app.js (js/vendor/supabase.umd.js)
+const { createClient } = window.supabase;
 
 const SUPABASE_URL    = 'https://bluvcwdblzfdydvqmpyp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdXZjd2RibHpmZHlkdnFtcHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNzkyODMsImV4cCI6MjA4OTY1NTI4M30.D3N42zxRw7SxZipSUueXwVDAb6IemGrMcNJCFDAArak';
@@ -433,6 +434,8 @@ export function sendReviewEmails({ reviewerEmail, reviewerName, reviewedName, re
     });
   }
 }
+
+/**
  * @param {string} reviewId
  * @param {'false_info'|'mistaken_identity'|'harassment'|'spam'|'privacy'|'other'} reason
  * @param {string} [details]

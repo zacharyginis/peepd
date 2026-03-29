@@ -22,7 +22,17 @@ let _getProfile, _getTopProfiles, _searchProfiles,
 async function loadSupabase() {
   if (_supabase) return;
   try {
-    const mod = await import('./supabase.js');
+    // Inject the local Supabase UMD bundle if not already loaded
+    if (!window.supabase?.createClient) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = '/js/vendor/supabase.umd.js?v=2';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Failed to load Supabase UMD bundle'));
+        document.head.appendChild(s);
+      });
+    }
+    const mod = await import('./supabase.js?v=5');
     _supabase               = mod.supabase;
     _getProfile             = mod.getProfile;
     _getTopProfiles         = mod.getTopProfiles;
@@ -1995,7 +2005,7 @@ async function connectWithOAuth(provider) {
     // On all other pages: redirect to My Profile after successful sign-in.
     const redirectTo = document.getElementById('socialGate')
       ? null
-      : `${window.location.origin}/my-profile.html`;
+      : `${window.location.origin}/my-profile`;
     await _signInWithOAuthProvider(provider, redirectTo);
     // Browser will redirect — nothing runs after this
   } catch (e) {
