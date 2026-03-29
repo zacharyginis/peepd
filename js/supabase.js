@@ -49,27 +49,14 @@ export async function getProfileBySlug(slug) {
   const normalizedSlug = normalizeProfileSlug(slug);
   if (!normalizedSlug) return null;
 
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('slug', normalizedSlug)
-      .limit(1)
-      .maybeSingle();
-
-    if (!error && data) return data;
-    if (error && error.code !== '42703' && !error.message?.includes('slug')) throw error;
-  } catch (error) {
-    if (error.code !== '42703' && !error.message?.includes('slug')) throw error;
-  }
-
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .limit(1000);
-
+    .eq('slug', normalizedSlug)
+    .limit(1)
+    .maybeSingle();
   if (error) throw error;
-  return (data || []).find((profile) => normalizeProfileSlug(profile.full_name) === normalizedSlug) || null;
+  return data || null;
 }
 
 /**
@@ -79,7 +66,7 @@ export async function getProfileBySlug(slug) {
 export async function getTopProfiles(limit = 20) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, title, company, location, peep_score, tier, review_count, accuracy_rate, initials, avatar_class, avatar_url')
+    .select('id, slug, full_name, title, company, location, peep_score, tier, review_count, accuracy_rate, initials, avatar_class, avatar_url')
     .order('peep_score', { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -93,7 +80,7 @@ export async function getTopProfiles(limit = 20) {
 export async function searchProfiles(query) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, title, company, initials, avatar_class, avatar_url, peep_score, tier')
+    .select('id, slug, full_name, title, company, initials, avatar_class, avatar_url, peep_score, tier')
     .ilike('full_name', `%${query}%`)
     .limit(10);
   if (error) throw error;

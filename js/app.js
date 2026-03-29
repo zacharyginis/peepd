@@ -33,7 +33,7 @@ async function loadSupabase() {
         document.head.appendChild(s);
       });
     }
-    const mod = await import('./supabase.js?v=5');
+    const mod = await import('./supabase.js?v=6');
     _supabase               = mod.supabase;
     _getProfile             = mod.getProfile;
     _getProfileBySlug       = mod.getProfileBySlug;
@@ -118,7 +118,7 @@ function normalizeProfileSlug(value) {
 }
 
 function buildProfilePath(profile) {
-  const slug = normalizeProfileSlug(profile?.slug || profile?.full_name || 'profile');
+  const slug = normalizeProfileSlug(profile?.slug) || normalizeProfileSlug(profile?.full_name || 'profile');
   return slug ? `/${slug}` : '/profile';
 }
 

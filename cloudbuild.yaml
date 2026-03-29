@@ -36,7 +36,7 @@ images:
 
 # Substitution defaults — override these in the Cloud Build trigger UI
 substitutions:
-  _REGION:  us-central1
+  _REGION:  us-east4
   _REPO:    peepd
   _SERVICE: peepd
 

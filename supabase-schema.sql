@@ -5,11 +5,24 @@
 
 -- ── Extensions ────────────────────────────────────────────────────────────────
 create extension if not exists "uuid-ossp";
+create extension if not exists unaccent;
+
+create or replace function public.slugify_profile_name(value text)
+returns text
+language sql
+immutable
+as $$
+  select coalesce(
+    nullif(regexp_replace(lower(unaccent(coalesce(value, ''))), '[^a-z0-9]+', '', 'g'), ''),
+    'profile'
+  );
+$$;
 
 -- ── Profiles ──────────────────────────────────────────────────────────────────
 create table if not exists public.profiles (
   id                uuid primary key default uuid_generate_v4(),
   created_at        timestamptz not null default now(),
+  slug              text not null unique,
   full_name         text not null,
   title             text,
   company           text,
@@ -34,6 +47,52 @@ create table if not exists public.profiles (
   user_id           uuid references auth.users(id) on delete set null  -- linked auth user (optional)
 );
 
+create or replace function public.generate_unique_profile_slug(base_value text, current_profile_id uuid default null)
+returns text
+language plpgsql
+as $$
+declare
+  base_slug text := public.slugify_profile_name(base_value);
+  candidate text := base_slug;
+  suffix integer := 2;
+begin
+  while exists (
+    select 1
+    from public.profiles profile_row
+    where profile_row.slug = candidate
+      and (current_profile_id is null or profile_row.id <> current_profile_id)
+  ) loop
+    candidate := base_slug || suffix::text;
+    suffix := suffix + 1;
+  end loop;
+
+  return candidate;
+end;
+$$;
+
+create or replace function public.set_profile_slug()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.slug is null
+     or new.slug = ''
+     or tg_op = 'INSERT'
+     or new.full_name is distinct from old.full_name then
+    new.slug := public.generate_unique_profile_slug(new.full_name, new.id);
+  else
+    new.slug := public.slugify_profile_name(new.slug);
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_set_profile_slug on public.profiles;
+create trigger trg_set_profile_slug
+  before insert or update on public.profiles
+  for each row execute function public.set_profile_slug();
+
 -- Public read, authenticated insert/update
 alter table public.profiles enable row level security;
 
@@ -47,6 +106,10 @@ create policy "Users can insert their own profile"
 create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = user_id);
+
+alter table public.profiles
+  add constraint profiles_slug_format_check
+  check (slug ~ '^[a-z0-9]+$');
 
 -- ── Reviews ───────────────────────────────────────────────────────────────────
 create table if not exists public.reviews (
@@ -225,14 +288,14 @@ create policy "Anyone can update social connections"
   on public.social_connections for update using (true);
 
 -- ── Seed demo data ────────────────────────────────────────────────────────────
-insert into public.profiles (full_name, title, company, location, initials, avatar_class, peep_score, review_count, accuracy_rate, is_verified)
+insert into public.profiles (slug, full_name, title, company, location, initials, avatar_class, peep_score, review_count, accuracy_rate, is_verified)
 values
-  ('Alex Morgan',   'Senior Product Designer', 'Vercel', 'San Francisco, CA', 'AM', 'avatar-1', 847, 42, 96.0, true),
-  ('Priya Sharma',  'Software Engineer',       'Stripe', 'Austin, TX',        'PS', 'avatar-2', 912, 67, 98.0, true),
-  ('Jordan Kim',    'Marketing Lead',          'Figma',  'New York, NY',      'JK', 'avatar-3', 723, 29, 88.0, false),
-  ('Nadia Reeves',  'Finance Analyst',         'Goldman Sachs', 'Chicago, IL','NR', 'avatar-4', 881, 38, 93.0, true),
-  ('Carlos Bravo',  'Founder',                 'Self',   'Miami, FL',         'CB', 'avatar-5', 604, 18, 81.0, false),
-  ('Taylor Hayes',  'UX Researcher',           'Apple',  'Seattle, WA',       'TH', 'avatar-6', 778, 31, 91.0, false)
+  ('alexmorgan',   'Alex Morgan',   'Senior Product Designer', 'Vercel', 'San Francisco, CA', 'AM', 'avatar-1', 847, 42, 96.0, true),
+  ('priyasharma',  'Priya Sharma',  'Software Engineer',       'Stripe', 'Austin, TX',        'PS', 'avatar-2', 912, 67, 98.0, true),
+  ('jordankim',    'Jordan Kim',    'Marketing Lead',          'Figma',  'New York, NY',      'JK', 'avatar-3', 723, 29, 88.0, false),
+  ('nadiareeves',  'Nadia Reeves',  'Finance Analyst',         'Goldman Sachs', 'Chicago, IL','NR', 'avatar-4', 881, 38, 93.0, true),
+  ('carlosbravo',  'Carlos Bravo',  'Founder',                 'Self',   'Miami, FL',         'CB', 'avatar-5', 604, 18, 81.0, false),
+  ('taylorhayes',  'Taylor Hayes',  'UX Researcher',           'Apple',  'Seattle, WA',       'TH', 'avatar-6', 778, 31, 91.0, false)
 on conflict do nothing;
 -- ── Waitlist ───────────────────────────────────────────────────────────────────
 create table if not exists public.waitlist (

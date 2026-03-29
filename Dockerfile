@@ -7,7 +7,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Static assets
-COPY index.html profile.html write-review.html \
+COPY index.html profile.html my-profile.html how-it-works.html write-review.html \
      privacy-policy.html terms-of-service.html cookie-policy.html \
      /usr/share/nginx/html/
 COPY css/ /usr/share/nginx/html/css/
