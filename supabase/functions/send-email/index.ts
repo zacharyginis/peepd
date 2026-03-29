@@ -229,6 +229,54 @@ function reviewReceivedEmail(fullName: string, relationship: string): { subject:
   return { subject: `${first}, you just received a new review on Peepd`, html };
 }
 
+// ─── Template 4: Waitlist Confirmation ─────────────────────────────────────
+
+function waitlistEmail(name: string): { subject: string; html: string } {
+  const first = name.split(' ')[0];
+  const html  = shell(`
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom:20px;">
+          <div style="font-size:52px;line-height:1;">&#127881;</div>
+        </td>
+      </tr>
+    </table>
+
+    <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#111827;line-height:1.3;text-align:center;font-family:Arial,sans-serif;">You're on the list, ${first}!</h1>
+    <p style="margin:0 0 28px;font-size:16px;color:#6B7280;line-height:1.75;text-align:center;font-family:Arial,sans-serif;">Consider yourself officially in the club. We got your spot saved and we are beyond excited to have you here.</p>
+
+    ${divider}
+
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,#FFF7F4,#FFF3EE);border-radius:12px;border:1px solid #FDDCC8;margin-bottom:28px;">
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#E05527;letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif;">Mark your calendar</p>
+          <p style="margin:0 0 4px;font-size:28px;font-weight:900;color:#111827;font-family:Arial,sans-serif;line-height:1.2;">Q2 2026</p>
+          <p style="margin:0;font-size:14px;color:#6B7280;font-family:Arial,sans-serif;line-height:1.6;">That's when we're opening the doors. Early waitlist members get in first, and we'll send you a personal invite the moment your spot is ready.</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 16px;font-size:12px;font-weight:700;color:#ABABAB;letter-spacing:1.5px;text-transform:uppercase;font-family:Arial,sans-serif;">What to expect</p>
+
+    ${bullet('Early access before the public launch so you are first to build your Peepd Score.')}
+    ${bullet('A personal invite email the day your account is activated.')}
+    ${bullet('The ability to review people you know and be reviewed by people who know you.')}
+    ${bullet('A verified, community-powered reputation score that actually means something.')}
+
+    ${divider}
+
+    <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7;text-align:center;font-family:Arial,sans-serif;">In the meantime, feel free to spread the word. The more honest people on Peepd, the better it works for everyone.</p>
+
+    ${btn('Share Peepd', '${SITE_URL}')}
+
+    ${divider}
+
+    <p style="margin:0;font-size:13px;color:#9CA3AF;line-height:1.7;text-align:center;font-family:Arial,sans-serif;">Got questions? Just reply to this email. We read every one.</p>
+  `);
+  return { subject: `You're on the Peepd waitlist, ${first}! (Q2 2026 launch)`, html };
+}
+
 // ─── Resend helper ───────────────────────────────────────────────────────────
 
 async function send(to: string, subject: string, html: string): Promise<void> {
@@ -287,6 +335,12 @@ serve(async (req) => {
 
       const { subject, html } = reviewReceivedEmail(profile.full_name, relationship ?? 'other');
       await send(userData.user.email, subject, html);
+
+    } else if (type === 'waitlist_confirmation') {
+      const { to_email, to_name } = body;
+      if (!to_email || !to_name) throw new Error('Missing to_email or to_name');
+      const { subject, html } = waitlistEmail(to_name);
+      await send(to_email, subject, html);
 
     } else {
       throw new Error(`Unknown email type: "${type}"`);

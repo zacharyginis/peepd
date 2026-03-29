@@ -1239,6 +1239,12 @@ async function submitWaitlist(e) {
   try {
     if (_saveWaitlistEntry) {
       await _saveWaitlistEntry(entry);
+      // Send confirmation email (fire-and-forget)
+      if (email && _supabase) {
+        _supabase.functions.invoke('send-email', {
+          body: { type: 'waitlist_confirmation', to_email: email, to_name: name },
+        }).catch(() => {});
+      }
     }
     document.getElementById('wlStateForm').style.display    = 'none';
     document.getElementById('wlStateSuccess').style.display = '';
