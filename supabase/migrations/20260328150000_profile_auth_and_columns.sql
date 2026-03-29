@@ -10,6 +10,7 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS website      text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS industry     text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS linkedin_url text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url   text; -- LinkedIn / Facebook profile photo
 
 -- 2. Add INSERT policy so authenticated users can create their own profile row
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;

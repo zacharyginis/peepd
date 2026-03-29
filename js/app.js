@@ -364,16 +364,37 @@ function updateCharCounter() {
   const len = textarea.value.length;
   counter.textContent = len + ' / 1200';
 
+  // Update progress bar fill
+  const fill = document.getElementById('charBarFill');
+  if (fill) {
+    const pct = Math.min(100, (len / 1200) * 100);
+    fill.style.width = pct + '%';
+    if (len === 0)        fill.style.background = '';
+    else if (len < 80)    fill.style.background = 'var(--amber)';
+    else if (len < 400)   fill.style.background = 'linear-gradient(90deg, var(--purple), var(--cyan))';
+    else                  fill.style.background = 'linear-gradient(90deg, var(--green), #34D399)';
+  }
+
   if (len === 0) {
     counter.className = 'char-counter';
     if (warning) warning.style.display = 'none';
   } else if (len < 80) {
     counter.className = 'char-counter warn';
-    if (warning) warning.style.display = 'block';
+    if (warning) warning.style.display = 'flex';
   } else {
     counter.className = 'char-counter ok';
     if (warning) warning.style.display = 'none';
   }
+}
+
+// ─── Writing Prompt Chip Inject (write-review.html) ──────────────────────────
+function injectPrompt(text) {
+  const textarea = document.getElementById('reviewText');
+  if (!textarea) return;
+  const cur = textarea.value.trim();
+  textarea.value = cur ? cur + ' ' + text + ' ' : text + ' ';
+  textarea.focus();
+  updateCharCounter();
 }
 
 // ─── Relationship Selector (write-review.html) ───────────────────────────────
@@ -523,7 +544,7 @@ function submitReview() {
   // 3. Relationship selected?
   if (!state.selectedRelationship) {
     showFormError('Please select your relationship with this person.');
-    const relGrid = document.querySelector('.rel-grid');
+    const relGrid = document.querySelector('.wr-rel-grid') || document.querySelector('.rel-grid');
     if (relGrid) shakeEl(relGrid);
     return;
   }
@@ -532,7 +553,7 @@ function submitReview() {
   const hasRating = Object.keys(state.ratings).length > 0;
   if (!hasRating) {
     showFormError('Please rate this person in at least one category.');
-    const ratingsGrid = document.querySelector('.ratings-grid');
+    const ratingsGrid = document.querySelector('.wr-rating-grid') || document.querySelector('.ratings-grid');
     if (ratingsGrid) shakeEl(ratingsGrid);
     return;
   }
@@ -845,7 +866,7 @@ function renderSearchDropdown(results, dropdown) {
     const meta = [p.title, p.company].filter(Boolean).map(escHtml).join(' · ');
     return `
       <a href="profile.html?id=${encodeURIComponent(p.id)}" class="search-result-item">
-        <div class="avatar ${escHtml(p.avatar_class || 'avatar-1')}">${escHtml(p.initials || '?')}</div>
+        ${mkAvatarHtml(p)}
         <div class="search-result-info">
           <div class="search-result-name">${escHtml(p.full_name)}</div>
           ${meta ? `<div class="search-result-meta">${meta}</div>` : ''}
@@ -890,7 +911,7 @@ async function loadTopProfiles() {
     grid.innerHTML = profiles.map(p => `
       <a href="profile.html?id=${p.id}" class="card card--glow profile-card fade-up">
         <div class="profile-card__top">
-          <div class="avatar ${p.avatar_class || 'avatar-1'}">${p.initials || '?'}</div>
+          ${mkAvatarHtml(p)}
           <div class="profile-card__info">
             <div class="profile-card__name">${escHtml(p.full_name)}</div>
             <div class="profile-card__meta"><i class="fas fa-map-pin"></i> ${escHtml(p.location || '')} &nbsp;·&nbsp; ${escHtml(p.title || '')}</div>
@@ -1000,6 +1021,15 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+/** Renders an avatar div — photo <img> if avatar_url is set, else initials with gradient. */
+function mkAvatarHtml(p, extraClass = '') {
+  const cls = extraClass ? ' ' + extraClass : '';
+  if (p.avatar_url) {
+    return `<div class="avatar avatar--photo${cls}"><img src="${escHtml(p.avatar_url)}" alt="${escHtml(p.initials || '')}" loading="lazy"></div>`;
+  }
+  return `<div class="avatar ${escHtml(p.avatar_class || 'avatar-1')}${cls}">${escHtml(p.initials || '?')}</div>`;
+}
+
 function timeAgo(isoStr) {
   if (!isoStr) return '';
   const diff = Date.now() - new Date(isoStr).getTime();
@@ -1021,6 +1051,7 @@ window.castVote              = castVote;
 window.demoVote              = demoVote;
 window.closeModal            = closeModal;
 window.updateCharCounter     = updateCharCounter;
+window.injectPrompt          = injectPrompt;
 window.connectWithOAuth      = connectWithOAuth;
 window.submitManualCount     = () => {}; // removed — no manual count entry
 window.resetSocialGate       = resetSocialGate;
@@ -1218,6 +1249,13 @@ async function initNavUserMenu() {
   const name      = (meta.full_name || meta.name || user.email || 'Me').trim();
   const firstName = name.split(' ')[0];
   const initials  = name.split(/\s+/).filter(Boolean).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  const avatarUrl  = meta.avatar_url || meta.picture || null;
+  const navAvSmall = avatarUrl
+    ? `<div class="nav__user-avatar nav__user-avatar--photo"><img src="${escHtml(avatarUrl)}" alt="${initials}"></div>`
+    : `<div class="nav__user-avatar">${initials}</div>`;
+  const navAvLarge = avatarUrl
+    ? `<div class="nav__user-avatar nav__user-avatar--lg nav__user-avatar--photo"><img src="${escHtml(avatarUrl)}" alt="${initials}"></div>`
+    : `<div class="nav__user-avatar nav__user-avatar--lg">${initials}</div>`;
   const provider  = user.app_metadata?.provider || '';
   const providerIcon = provider === 'linkedin_oidc'
     ? '<i class="fab fa-linkedin" style="color:#0A66C2;font-size:0.85rem;"></i>'
@@ -1233,13 +1271,13 @@ async function initNavUserMenu() {
   actionsEl.outerHTML = `
     <div class="nav__user-menu" id="navUserMenu">
       <button class="nav__user-btn" onclick="toggleNavUserMenu()">
-        <div class="nav__user-avatar">${initials}</div>
+        ${navAvSmall}
         <span class="nav__user-name">${firstName}</span>
         <i class="fas fa-chevron-down nav__user-caret" id="navUserCaret"></i>
       </button>
       <div class="nav__user-dropdown" id="navUserDropdown">
         <div class="nav__user-dropdown-header">
-          <div class="nav__user-avatar nav__user-avatar--lg">${initials}</div>
+          ${navAvLarge}
           <div>
             <div class="nav__user-dropdown-name">${name}</div>
             <div class="nav__user-dropdown-email">${providerIcon} ${user.email || provider}</div>
@@ -1424,7 +1462,14 @@ async function saveProfileEdits(e) {
       fill('abCompany',  updated.company);
       fill('abLocation', updated.location);
       const avatarEl = document.getElementById('mpAvatar');
-      if (avatarEl) avatarEl.className = `avatar ${updated.avatar_class || 'avatar-1'} avatar-xl`;
+      if (avatarEl) {
+        if (updated.avatar_url) {
+          avatarEl.className = 'avatar avatar--photo avatar-xl';
+          avatarEl.innerHTML = `<img src="${escHtml(updated.avatar_url)}" alt="${escHtml(updated.initials || '')}" loading="lazy">`;
+        } else {
+          avatarEl.className = `avatar ${updated.avatar_class || 'avatar-1'} avatar-xl`;
+        }
+      }
       // Update nav avatar initials too
       document.querySelectorAll('.nav__user-avatar').forEach(el => { if (!el.querySelector('img')) el.textContent = updated.initials; });
       // Website
@@ -1510,7 +1555,14 @@ async function loadMyProfilePage() {
   const set = (id, val) => { const el = g(id); if (el) el.textContent = val || ''; };
 
   const avatarEl = g('mpAvatar');
-  if (avatarEl) avatarEl.className = `avatar ${profile.avatar_class || 'avatar-1'} avatar-xl`;
+  if (avatarEl) {
+    if (profile.avatar_url) {
+      avatarEl.className = 'avatar avatar--photo avatar-xl';
+      avatarEl.innerHTML = `<img src="${escHtml(profile.avatar_url)}" alt="${escHtml(profile.initials || '')}" loading="lazy">`;
+    } else {
+      avatarEl.className = `avatar ${profile.avatar_class || 'avatar-1'} avatar-xl`;
+    }
+  }
   set('mpInitials',  profile.initials || profile.full_name.slice(0,2).toUpperCase());
   set('mpName',      profile.full_name);
   set('mpTitle',     profile.title    || '—');

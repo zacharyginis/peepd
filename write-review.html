@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Write a Review — Peepd</title>
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
 </head>
 <body class="review-page">
@@ -34,7 +34,7 @@
     </div>
   </nav>
 
-  <!-- ── Self-Review Alert (hidden) ─────────────────────────── -->
+  <!-- ── Self-Review Alert (hidden by JS) ───────────────────── -->
   <div id="selfReviewAlert" style="display:none; background:rgba(239,68,68,0.12); border-bottom:1px solid rgba(239,68,68,0.3); padding:12px; text-align:center;">
     <i class="fas fa-ban" style="color:var(--red);"></i>
     <strong style="color:var(--red);">You cannot review yourself.</strong>
@@ -45,189 +45,366 @@
   <div id="socialConnectedBanner" style="display:none; background:rgba(16,185,129,0.1); border-bottom:1px solid rgba(16,185,129,0.3); padding:10px 24px; align-items:center; gap:10px; font-size:0.875rem; color:var(--green);">
   </div>
 
-  <!-- ── Page Content ───────────────────────────────────────── -->
-  <div class="review-page-inner">
+  <!-- ═══════════════════════════════════════════════════════════
+       HERO STRIP
+  ═══════════════════════════════════════════════════════════════ -->
+  <section class="wr-hero">
+    <div class="wr-hero__bg">
+      <div class="wr-hero__grid"></div>
+      <div class="wr-hero__glow-l"></div>
+      <div class="wr-hero__glow-r"></div>
+    </div>
     <div class="container">
-      <div class="review-layout">
+      <div class="wr-hero__inner">
 
-        <!-- ── Form Column ──────────────────────────────────── -->
-        <div class="review-form-col">
-          <div class="review-form-header">
-            <h1><i class="fas fa-pen-to-square" style="color:var(--purple);"></i> Write a Review</h1>
-            <p>You're building someone's reputation. Be honest, specific, and fair.</p>
+        <div class="wr-hero__copy">
+          <div class="hero__eyebrow">
+            <span class="hero__eyebrow-dot"></span>
+            You are about to shape someone's reputation
           </div>
+          <h1 class="wr-hero__h1">Your Words.<br /><span class="gradient-text">Their Reputation.</span></h1>
+          <p class="wr-hero__p">Reviews on Peepd are verified, anonymous, and permanent. Be honest, be specific, and be fair — vague reviews carry less weight in the algorithm.</p>
+        </div>
 
-          <div class="card" style="padding:32px;">
-            <form id="reviewForm" novalidate>
+        <div class="wr-hero__stats">
+          <div class="wr-hero__stat">
+            <div class="wr-hero__stat-value">18.3K</div>
+            <div class="wr-hero__stat-label"><i class="fas fa-pen-to-square"></i> Reviews submitted</div>
+          </div>
+          <div class="wr-hero__stat-divider"></div>
+          <div class="wr-hero__stat">
+            <div class="wr-hero__stat-value" style="color:var(--green);">94.2%</div>
+            <div class="wr-hero__stat-label"><i class="fas fa-shield-halved"></i> Accuracy rate</div>
+          </div>
+          <div class="wr-hero__stat-divider"></div>
+          <div class="wr-hero__stat">
+            <div class="wr-hero__stat-value" style="color:var(--cyan-light);">100%</div>
+            <div class="wr-hero__stat-label"><i class="fas fa-eye-slash"></i> Anonymous</div>
+          </div>
+        </div>
 
-              <!-- Step 1: Who are you reviewing? -->
-              <div class="form-section">
-                <div class="form-section__label">
-                  <span class="form-step-num">1</span>
-                  Who are you reviewing?
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PROGRESS STEPPER
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="wr-stepper-rail">
+    <div class="container">
+      <div class="wr-stepper" id="wrStepper">
+
+        <div class="wr-s wr-s--active" data-step="1">
+          <div class="wr-s__dot"><i class="fas fa-user-plus"></i></div>
+          <span class="wr-s__label">Who?</span>
+        </div>
+        <div class="wr-s__bar"></div>
+
+        <div class="wr-s" data-step="2">
+          <div class="wr-s__dot"><i class="fas fa-handshake"></i></div>
+          <span class="wr-s__label">Relationship</span>
+        </div>
+        <div class="wr-s__bar"></div>
+
+        <div class="wr-s" data-step="3">
+          <div class="wr-s__dot"><i class="fas fa-star"></i></div>
+          <span class="wr-s__label">Ratings</span>
+        </div>
+        <div class="wr-s__bar"></div>
+
+        <div class="wr-s" data-step="4">
+          <div class="wr-s__dot"><i class="fas fa-pen-nib"></i></div>
+          <span class="wr-s__label">Your Review</span>
+        </div>
+        <div class="wr-s__bar"></div>
+
+        <div class="wr-s" data-step="5">
+          <div class="wr-s__dot"><i class="fas fa-shield-halved"></i></div>
+          <span class="wr-s__label">Pledge</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE BODY
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="wr-body">
+    <div class="container">
+      <div class="wr-layout">
+
+        <!-- ─────────────────── FORM COLUMN ─────────────────── -->
+        <div class="wr-form-col">
+          <form id="reviewForm" novalidate>
+
+            <!-- ════ BLOCK 1 · WHO ════════════════════════════ -->
+            <div class="wr-block fade-up" id="wrBlock1">
+              <div class="wr-block__hd">
+                <div class="wr-block__num">1</div>
+                <div class="wr-block__meta">
+                  <h2 class="wr-block__title">Who are you reviewing?</h2>
+                  <p class="wr-block__sub">Search by name. They will never see that you're submitting a review.</p>
                 </div>
+              </div>
+              <div class="wr-block__body">
 
-                <div class="target-selector" id="targetSelector" onclick="openPersonSearch()">
+                <div class="wr-target-selector target-selector" id="targetSelector" onclick="openPersonSearch()">
                   <div class="target-selector__placeholder" id="targetPlaceholder">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Click to select a person</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:4px;">Search by name or email</span>
+                    <div class="wr-target-placeholder-icon"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                      <div style="font-weight:600; font-size:0.95rem; color:var(--text-secondary); margin-bottom:3px;">Search for a person to review</div>
+                      <div style="font-size:0.78rem; color:var(--text-muted);">Type their name or email in the nav search above</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="margin-left:auto; color:var(--text-muted); font-size:0.85rem;"></i>
                   </div>
                   <div class="target-selector__selected" id="targetInfo" style="display:none;">
                     <div class="avatar avatar-1 target-avatar" id="targetAvatar">?</div>
-                    <div>
-                      <div id="targetName" style="font-weight:700; font-size:0.95rem;"></div>
+                    <div style="flex:1; min-width:0;">
+                      <div id="targetName" style="font-weight:700; font-size:0.95rem; margin-bottom:2px;"></div>
                       <div id="targetMeta" style="font-size:0.78rem; color:var(--text-muted);"></div>
                     </div>
-                    <i class="fas fa-pen" style="margin-left:auto; color:var(--text-muted); font-size:0.8rem;"></i>
+                    <span class="wr-target-change-badge"><i class="fas fa-pen"></i> Change</span>
                   </div>
                 </div>
 
-                <!-- Quick select buttons -->
-                <div class="quick-select">
-                  <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Quick select:</div>
-                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button type="button" class="btn btn--ghost btn--sm" onclick="selectPerson('Alex Morgan','Senior Product Designer · Vercel','AM',false)">
-                      <div class="avatar avatar-1" style="width:20px; height:20px; font-size:0.55rem; flex-shrink:0;">AM</div>
-                      Alex Morgan
+                <div class="wr-quick-select quick-select">
+                  <div class="wr-quick-label">Try a demo person:</div>
+                  <div class="wr-quick-btns">
+                    <button type="button" class="wr-quick-btn" onclick="selectPerson('Alex Morgan','Senior Product Designer · Vercel','AM',false)">
+                      <div class="avatar avatar-1" style="width:22px; height:22px; font-size:0.5rem; flex-shrink:0; border-radius:50%;">AM</div>
+                      <span>Alex Morgan</span>
                     </button>
-                    <button type="button" class="btn btn--ghost btn--sm" onclick="selectPerson('Priya Sharma','Software Engineer · Stripe','PS',false)">
-                      <div class="avatar avatar-2" style="width:20px; height:20px; font-size:0.55rem; flex-shrink:0;">PS</div>
-                      Priya Sharma
+                    <button type="button" class="wr-quick-btn" onclick="selectPerson('Priya Sharma','Software Engineer · Stripe','PS',false)">
+                      <div class="avatar avatar-2" style="width:22px; height:22px; font-size:0.5rem; flex-shrink:0; border-radius:50%;">PS</div>
+                      <span>Priya Sharma</span>
                     </button>
-                    <button type="button" class="btn btn--ghost btn--sm" style="border-color:rgba(239,68,68,0.3);" onclick="selectPerson('You (Yourself)','Your own profile','ME',true)">
-                      <i class="fas fa-user" style="color:var(--red); font-size:0.7rem;"></i>
-                      Yourself (Test Block)
+                    <button type="button" class="wr-quick-btn wr-quick-btn--danger" onclick="selectPerson('You (Yourself)','Your own profile','ME',true)">
+                      <i class="fas fa-user" style="color:var(--red); font-size:0.75rem;"></i>
+                      <span>Yourself (Test Block)</span>
                     </button>
                   </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ════ BLOCK 2 · RELATIONSHIP ══════════════════ -->
+            <div class="wr-block fade-up fade-up-delay-1" id="wrBlock2">
+              <div class="wr-block__hd">
+                <div class="wr-block__num">2</div>
+                <div class="wr-block__meta">
+                  <h2 class="wr-block__title">Your relationship</h2>
+                  <p class="wr-block__sub">How did you know this person? Choose the best fit.</p>
                 </div>
               </div>
+              <div class="wr-block__body">
+                <div class="wr-rel-grid">
 
-              <!-- Step 2: Relationship -->
-              <div class="form-section">
-                <div class="form-section__label">
-                  <span class="form-step-num">2</span>
-                  Your relationship with this person
-                </div>
-                <div class="rel-grid">
-                  <button type="button" class="rel-btn" data-rel="colleague" onclick="selectRel(this)">
-                    <i class="fas fa-users"></i> Colleague
+                  <button type="button" class="rel-btn wr-rel" data-rel="colleague" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-users"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Colleague</span>
+                      <span class="wr-rel__sub">Same company or team</span>
+                    </div>
                   </button>
-                  <button type="button" class="rel-btn" data-rel="manager" onclick="selectRel(this)">
-                    <i class="fas fa-user-tie"></i> Manager / Was my boss
+
+                  <button type="button" class="rel-btn wr-rel" data-rel="manager" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-user-tie"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Manager</span>
+                      <span class="wr-rel__sub">They were my boss</span>
+                    </div>
                   </button>
-                  <button type="button" class="rel-btn" data-rel="report" onclick="selectRel(this)">
-                    <i class="fas fa-user-check"></i> Direct Report
+
+                  <button type="button" class="rel-btn wr-rel" data-rel="report" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-user-check"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Direct Report</span>
+                      <span class="wr-rel__sub">I managed them</span>
+                    </div>
                   </button>
-                  <button type="button" class="rel-btn" data-rel="friend" onclick="selectRel(this)">
-                    <i class="fas fa-heart"></i> Friend
+
+                  <button type="button" class="rel-btn wr-rel" data-rel="friend" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-heart"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Friend</span>
+                      <span class="wr-rel__sub">Personal relationship</span>
+                    </div>
                   </button>
-                  <button type="button" class="rel-btn" data-rel="classmate" onclick="selectRel(this)">
-                    <i class="fas fa-graduation-cap"></i> Classmate
+
+                  <button type="button" class="rel-btn wr-rel" data-rel="classmate" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Classmate</span>
+                      <span class="wr-rel__sub">School or university</span>
+                    </div>
                   </button>
-                  <button type="button" class="rel-btn" data-rel="other" onclick="selectRel(this)">
-                    <i class="fas fa-circle-question"></i> Other
+
+                  <button type="button" class="rel-btn wr-rel" data-rel="other" onclick="selectRel(this)">
+                    <div class="wr-rel__icon-wrap"><i class="fas fa-circle-question"></i></div>
+                    <div class="wr-rel__text">
+                      <span class="wr-rel__name">Other</span>
+                      <span class="wr-rel__sub">Another connection</span>
+                    </div>
                   </button>
+
                 </div>
               </div>
+            </div>
 
-              <!-- Step 3: Ratings -->
-              <div class="form-section">
-                <div class="form-section__label">
-                  <span class="form-step-num">3</span>
-                  Rate them across all categories
-                </div>
-                <div class="ratings-grid">
-                  <div class="rating-category">
-                    <div class="rating-category__label">Work Ethic</div>
-                    <div class="star-rating" data-category="work-ethic">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-work-ethic">Not rated</span>
-                    </div>
-                  </div>
-                  <div class="rating-category">
-                    <div class="rating-category__label">Reliability</div>
-                    <div class="star-rating" data-category="reliability">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-reliability">Not rated</span>
-                    </div>
-                  </div>
-                  <div class="rating-category">
-                    <div class="rating-category__label">Honesty</div>
-                    <div class="star-rating" data-category="honesty">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-honesty">Not rated</span>
-                    </div>
-                  </div>
-                  <div class="rating-category">
-                    <div class="rating-category__label">Character</div>
-                    <div class="star-rating" data-category="character">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-character">Not rated</span>
-                    </div>
-                  </div>
-                  <div class="rating-category">
-                    <div class="rating-category__label">Intelligence</div>
-                    <div class="star-rating" data-category="intelligence">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-intelligence">Not rated</span>
-                    </div>
-                  </div>
-                  <div class="rating-category">
-                    <div class="rating-category__label">Social Skills</div>
-                    <div class="star-rating" data-category="social-skills">
-                      <span class="star" data-val="1">★</span>
-                      <span class="star" data-val="2">★</span>
-                      <span class="star" data-val="3">★</span>
-                      <span class="star" data-val="4">★</span>
-                      <span class="star" data-val="5">★</span>
-                      <span class="star-val-label" id="val-social-skills">Not rated</span>
-                    </div>
-                  </div>
+            <!-- ════ BLOCK 3 · RATINGS ════════════════════════ -->
+            <div class="wr-block fade-up fade-up-delay-2" id="wrBlock3">
+              <div class="wr-block__hd">
+                <div class="wr-block__num">3</div>
+                <div class="wr-block__meta">
+                  <h2 class="wr-block__title">Rate them</h2>
+                  <p class="wr-block__sub">Score across 6 dimensions. Each category influences their final Peep Score.</p>
                 </div>
               </div>
+              <div class="wr-block__body">
+                <div class="wr-rating-grid">
 
-              <!-- Step 4: Written Review -->
-              <div class="form-section">
-                <div class="form-section__label">
-                  <span class="form-step-num">4</span>
-                  Write your review
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--amber"><i class="fas fa-bolt"></i></div>
+                      <div class="wr-cat__name">Work Ethic</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="work-ethic">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-work-ethic">Not rated</div>
+                  </div>
+
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--green"><i class="fas fa-circle-check"></i></div>
+                      <div class="wr-cat__name">Reliability</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="reliability">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-reliability">Not rated</div>
+                  </div>
+
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--purple"><i class="fas fa-scale-balanced"></i></div>
+                      <div class="wr-cat__name">Honesty</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="honesty">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-honesty">Not rated</div>
+                  </div>
+
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--red"><i class="fas fa-heart"></i></div>
+                      <div class="wr-cat__name">Character</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="character">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-character">Not rated</div>
+                  </div>
+
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--blue"><i class="fas fa-brain"></i></div>
+                      <div class="wr-cat__name">Intelligence</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="intelligence">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-intelligence">Not rated</div>
+                  </div>
+
+                  <div class="wr-cat">
+                    <div class="wr-cat__top">
+                      <div class="wr-cat__icon-wrap wr-cat__icon--cyan"><i class="fas fa-comments"></i></div>
+                      <div class="wr-cat__name">Social Skills</div>
+                    </div>
+                    <div class="star-rating wr-stars" data-category="social-skills">
+                      <span class="star" data-val="1">★</span>
+                      <span class="star" data-val="2">★</span>
+                      <span class="star" data-val="3">★</span>
+                      <span class="star" data-val="4">★</span>
+                      <span class="star" data-val="5">★</span>
+                    </div>
+                    <div class="wr-cat__label" id="val-social-skills">Not rated</div>
+                  </div>
+
                 </div>
-                <textarea
-                  id="reviewText"
-                  class="review-textarea"
-                  placeholder="Describe your experience with this person. What makes them stand out? How do they operate under pressure? What would you want others to know? Be specific and honest — vague reviews carry less weight."
-                  maxlength="1200"
-                  oninput="updateCharCounter()"
-                  rows="7"
-                ></textarea>
-                <div class="char-counter-row">
-                  <span id="charWarning" class="char-warning" style="display:none;"><i class="fas fa-circle-info"></i> Min. 80 characters required for review to be accepted</span>
-                  <span id="charCounter" class="char-counter">0 / 1200</span>
+              </div>
+            </div>
+
+            <!-- ════ BLOCK 4 · WRITTEN REVIEW ════════════════ -->
+            <div class="wr-block fade-up fade-up-delay-3" id="wrBlock4">
+              <div class="wr-block__hd">
+                <div class="wr-block__num">4</div>
+                <div class="wr-block__meta">
+                  <h2 class="wr-block__title">Write your review</h2>
+                  <p class="wr-block__sub">Specific, detailed reviews carry 3× more weight in the accuracy engine. Minimum 80 characters.</p>
+                </div>
+              </div>
+              <div class="wr-block__body">
+
+                <!-- Prompt chips -->
+                <div class="wr-prompts">
+                  <span class="wr-prompt-label">Writing prompts:</span>
+                  <div class="wr-prompt-chips">
+                    <button type="button" class="wr-chip" onclick="injectPrompt('How did they perform under pressure?')">Under pressure?</button>
+                    <button type="button" class="wr-chip" onclick="injectPrompt('What sets them apart from others?')">What sets them apart?</button>
+                    <button type="button" class="wr-chip" onclick="injectPrompt('Would you work with them again, and why?')">Work with again?</button>
+                    <button type="button" class="wr-chip" onclick="injectPrompt('What should their next employer know?')">For their next employer</button>
+                  </div>
+                </div>
+
+                <div class="review-textarea-wrap">
+                  <textarea
+                    id="reviewText"
+                    class="review-textarea wr-textarea"
+                    placeholder="Be specific — describe a real situation, their actions, and the outcome. Vague reviews are flagged by the accuracy engine and carry less weight."
+                    maxlength="1200"
+                    oninput="updateCharCounter()"
+                    rows="8"
+                  ></textarea>
+                  <span class="char-counter" id="charCounter">0 / 1200</span>
+                </div>
+
+                <!-- Character progress bar -->
+                <div class="wr-char-bar-wrap">
+                  <span id="charWarning" style="display:none; font-size:0.75rem; color:var(--amber); display:flex; align-items:center; gap:5px;">
+                    <i class="fas fa-circle-exclamation"></i> Min. 80 characters required
+                  </span>
+                  <div class="wr-char-bar">
+                    <div class="wr-char-bar__fill" id="charBarFill" style="width:0%;"></div>
+                  </div>
                 </div>
 
                 <!-- LinkedIn Import (shown once LinkedIn-verified) -->
-                <div id="liImportSection" style="display:none; margin-top:14px;">
+                <div id="liImportSection" style="display:none; margin-top:18px;">
                   <label class="li-import-toggle">
                     <input type="checkbox" id="liImportCheck" class="pledge-checkbox" onchange="toggleLinkedInImport(this.checked)" />
                     <span class="pledge-custom-check"><i class="fas fa-check"></i></span>
@@ -249,7 +426,7 @@
                         <i class="fab fa-linkedin" style="color:#0A66C2; font-size:1.4rem; flex-shrink:0; margin-top:2px;"></i>
                         <div>
                           <strong>Paste your LinkedIn recommendation</strong>
-                          <span>On LinkedIn, go to the person&rsquo;s profile &rarr; Recommendations &rarr; copy the text of the recommendation you wrote for them.</span>
+                          <span>Go to the person&rsquo;s profile &rarr; Recommendations &rarr; copy your recommendation.</span>
                         </div>
                       </div>
                       <textarea id="liPasteArea" class="review-textarea" style="margin-top:10px;" placeholder="Paste your LinkedIn recommendation text here&hellip;" rows="4" oninput="updateLiPasteCount()"></textarea>
@@ -265,84 +442,124 @@
                 </div>
 
               </div>
+            </div>
 
-              <!-- Step 5: Accuracy Pledge -->
-              <div class="form-section">
-                <div class="form-section__label">
-                  <span class="form-step-num">5</span>
-                  Accuracy pledge
+            <!-- ════ BLOCK 5 · PLEDGE ════════════════════════ -->
+            <div class="wr-block wr-block--pledge fade-up fade-up-delay-4" id="wrBlock5">
+              <div class="wr-block__hd">
+                <div class="wr-block__num wr-block__num--pledge">5</div>
+                <div class="wr-block__meta">
+                  <h2 class="wr-block__title">The Accuracy Pledge</h2>
+                  <p class="wr-block__sub">Every review on Peepd is backed by this commitment.</p>
                 </div>
-                <label class="pledge-label">
-                  <input type="checkbox" id="pledgeCheck" class="pledge-checkbox" />
-                  <span class="pledge-custom-check">
-                    <i class="fas fa-check"></i>
-                  </span>
-                  <span class="pledge-text">
-                    I confirm that this review is based on personal, firsthand experience with this person.
-                    I understand that submitting false or misleading reviews may result in penalties and removal
-                    of the review. I agree to Peepd's <a href="#" style="color:var(--purple);">Review Guidelines</a>.
-                  </span>
-                </label>
               </div>
+              <div class="wr-block__body">
 
-              <!-- Submit -->
-              <div class="form-submit-area">
-                <button type="submit" class="btn btn--primary btn--lg" id="submitBtn" style="width:100%;">
-                  <i class="fas fa-paper-plane"></i> Submit Review
-                </button>
-                <p style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:12px;">
-                  <i class="fas fa-eye-slash"></i> Your review will be submitted anonymously. Your identity is never revealed.
-                </p>
+                <div class="wr-pledge-card">
+                  <div class="wr-pledge-icon"><i class="fas fa-fingerprint"></i></div>
+                  <div class="wr-pledge-quote">
+                    "I am a real person with a real relationship to this individual. My review reflects genuine, firsthand experience — not rumor, hearsay, or malice."
+                  </div>
+                  <label class="wr-pledge-label">
+                    <input type="checkbox" id="pledgeCheck" class="pledge-checkbox" />
+                    <span class="pledge-custom-check"><i class="fas fa-check"></i></span>
+                    <span class="wr-pledge-text">
+                      I confirm this review is based on personal, firsthand experience.
+                      I understand that false or misleading reviews may result in permanent account suspension.
+                      I agree to Peepd's <a href="#" style="color:var(--purple);">Review Guidelines</a>.
+                    </span>
+                  </label>
+                </div>
+
               </div>
+            </div>
 
-            </form>
-          </div>
+            <!-- ════ SUBMIT ══════════════════════════════════ -->
+            <div class="wr-submit-area fade-up">
+              <button type="submit" class="wr-submit-btn" id="submitBtn">
+                <span class="wr-submit-btn__inner">
+                  <i class="fas fa-paper-plane"></i>
+                  Publish Your Review
+                </span>
+                <span class="wr-submit-btn__shine"></span>
+              </button>
+              <div class="wr-submit-meta">
+                <span><i class="fas fa-eye-slash"></i> Submitted anonymously — your identity is never revealed</span>
+                <span><i class="fas fa-shield-halved"></i> Enters accuracy verification queue immediately</span>
+              </div>
+            </div>
+
+          </form>
         </div>
 
-        <!-- ── Sidebar ──────────────────────────────────────── -->
-        <aside class="review-sidebar">
+        <!-- ─────────────────── SIDEBAR ──────────────────────── -->
+        <aside class="wr-sidebar-col">
 
-          <div class="info-card">
-            <h4><i class="fas fa-clipboard-list" style="color:var(--purple);"></i> Review Guidelines</h4>
-            <ul>
-              <li><i class="fas fa-circle-check" style="color:var(--green);"></i> Based on real, personal experience</li>
-              <li><i class="fas fa-circle-check" style="color:var(--green);"></i> Specific and constructive</li>
-              <li><i class="fas fa-circle-check" style="color:var(--green);"></i> Fair — include growth areas too</li>
-              <li><i class="fas fa-circle-xmark" style="color:var(--red);"></i> No hate speech or personal attacks</li>
-              <li><i class="fas fa-circle-xmark" style="color:var(--red);"></i> No defamatory or unverified claims</li>
-              <li><i class="fas fa-circle-xmark" style="color:var(--red);"></i> No self-reviews — ever</li>
-            </ul>
-          </div>
-
-          <div class="info-card info-card--danger">
-            <h4><i class="fas fa-lock" style="color:var(--red);"></i> Self-Review Lockout</h4>
-            <p>Our system automatically detects and blocks any attempt to review yourself. This cannot be bypassed.</p>
-            <p style="font-size:0.78rem; margin-top:8px; color:var(--text-muted);">Self-reviews invalidate your score and are permanently logged.</p>
-          </div>
-
-          <div class="info-card">
-            <h4><i class="fas fa-shield-halved" style="color:var(--cyan);"></i> Accuracy Engine</h4>
-            <p>Once submitted, the community votes on your review's accuracy. Highly accurate reviews carry more weight in the subject's Peep Score.</p>
-            <div style="margin-top:12px;">
-              <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:6px;">
-                <span style="color:var(--text-muted);">Platform accuracy rate</span>
+          <!-- Impact card -->
+          <div class="wr-sb-card wr-sb-card--impact">
+            <div class="wr-sb-card__accent-line"></div>
+            <div class="wr-sb-impact-header">
+              <div class="wr-sb-impact-icon"><i class="fas fa-chart-line"></i></div>
+              <div>
+                <div class="wr-sb-impact-title">Your Review Has Real Impact</div>
+                <div class="wr-sb-impact-sub">Every word shapes a real person's career</div>
+              </div>
+            </div>
+            <div class="wr-sb-stat-row">
+              <div class="wr-sb-stat">
+                <div class="wr-sb-stat-val">3×</div>
+                <div class="wr-sb-stat-lbl">More weight for detailed reviews</div>
+              </div>
+              <div class="wr-sb-stat-divider"></div>
+              <div class="wr-sb-stat">
+                <div class="wr-sb-stat-val" style="color:var(--green);">94.2%</div>
+                <div class="wr-sb-stat-lbl">Platform accuracy rate</div>
+              </div>
+            </div>
+            <div class="wr-sb-acc-bar-wrap">
+              <div style="display:flex; justify-content:space-between; font-size:0.72rem; margin-bottom:6px;">
+                <span style="color:var(--text-muted);">Community accuracy score</span>
                 <span style="color:var(--green); font-weight:700;">94.2%</span>
               </div>
-              <div style="background:var(--bg-elevated); border-radius:4px; height:6px; overflow:hidden;">
-                <div style="width:94.2%; height:100%; background:var(--green); border-radius:4px;"></div>
+              <div class="wr-sb-acc-bar">
+                <div class="wr-sb-acc-bar__fill" style="width:94.2%;"></div>
               </div>
             </div>
           </div>
 
-          <div class="info-card">
-            <h4><i class="fas fa-user-secret" style="color:var(--amber);"></i> Anonymous by Default</h4>
-            <p>All reviews are 100% anonymous. The person you review will never know you submitted it — only the content is shown on their profile.</p>
+          <!-- Anonymous card -->
+          <div class="wr-sb-card wr-sb-anon">
+            <div class="wr-sb-anon-icon"><i class="fas fa-user-secret"></i></div>
+            <div>
+              <div class="wr-sb-anon-title">100% Anonymous</div>
+              <div class="wr-sb-anon-body">The person you're reviewing will never know it was you. Only the content of your review is shown — never your identity.</div>
+            </div>
+          </div>
+
+          <!-- Guidelines card -->
+          <div class="wr-sb-card">
+            <div class="wr-sb-card__heading"><i class="fas fa-clipboard-list"></i> Review Guidelines</div>
+            <ul class="wr-sb-guideline-list">
+              <li class="wr-sb-guideline wr-sb-guideline--ok"><i class="fas fa-circle-check"></i> Based on real, personal experience</li>
+              <li class="wr-sb-guideline wr-sb-guideline--ok"><i class="fas fa-circle-check"></i> Specific and constructive</li>
+              <li class="wr-sb-guideline wr-sb-guideline--ok"><i class="fas fa-circle-check"></i> Fair — include growth areas too</li>
+              <li class="wr-sb-guideline wr-sb-guideline--no"><i class="fas fa-circle-xmark"></i> No hate speech or personal attacks</li>
+              <li class="wr-sb-guideline wr-sb-guideline--no"><i class="fas fa-circle-xmark"></i> No defamatory or unverified claims</li>
+              <li class="wr-sb-guideline wr-sb-guideline--no"><i class="fas fa-circle-xmark"></i> No self-reviews — ever</li>
+            </ul>
+          </div>
+
+          <!-- Lockout card -->
+          <div class="wr-sb-card wr-sb-card--danger">
+            <div class="wr-sb-card__heading" style="color:#FCA5A5;"><i class="fas fa-lock" style="color:var(--red);"></i> Self-Review Lockout</div>
+            <p class="wr-sb-danger-body">Our system automatically detects and permanently blocks self-reviews. This cannot be bypassed — attempts are logged and may trigger account review.</p>
           </div>
 
         </aside>
-      </div>
-    </div>
-  </div>
+
+      </div><!-- /.wr-layout -->
+    </div><!-- /.container -->
+  </div><!-- /.wr-body -->
 
   <!-- ── Social Verification Gate ───────────────────────────── -->
   <div id="socialGate" class="social-gate hidden">

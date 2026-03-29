@@ -36,7 +36,7 @@ export async function getProfile(id) {
 export async function getTopProfiles(limit = 20) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, title, company, location, peep_score, tier, review_count, accuracy_rate, initials, avatar_class')
+    .select('id, full_name, title, company, location, peep_score, tier, review_count, accuracy_rate, initials, avatar_class, avatar_url')
     .order('peep_score', { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -50,7 +50,7 @@ export async function getTopProfiles(limit = 20) {
 export async function searchProfiles(query) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, title, company, initials, avatar_class, peep_score, tier')
+    .select('id, full_name, title, company, initials, avatar_class, avatar_url, peep_score, tier')
     .ilike('full_name', `%${query}%`)
     .limit(10);
   if (error) throw error;
@@ -300,37 +300,67 @@ export async function signOut() {
  * @param {object} user  supabase auth user object
  */
 export async function getOrCreateMyProfile(user) {
-  // First, try to find an existing profile linked to this auth user
-  const { data: existing, error: fe } = await supabase
+  // First, try to find an existing profile linked to this auth user.
+  // Use limit(1) + select so duplicate rows (possible before UNIQUE constraint) don't throw.
+  const { data: rows, error: fe } = await supabase
     .from('profiles')
     .select('*')
     .eq('user_id', user.id)
-    .maybeSingle();
+    .order('created_at', { ascending: true })
+    .limit(1);
   if (fe) throw fe;
-  if (existing) return existing;
+  const existing = rows?.[0] ?? null;
+  if (existing) {
+    // Silently backfill avatar_url for profiles created before this feature
+    const freshUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+    if (freshUrl && !existing.avatar_url) {
+      supabase.from('profiles').update({ avatar_url: freshUrl }).eq('id', existing.id).then(() => {});
+      existing.avatar_url = freshUrl;
+    }
+    return existing;
+  }
 
   const raw      = (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User').trim();
   const parts    = raw.split(/\s+/).filter(Boolean);
   const initials = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
   const avatarClasses = ['avatar-1','avatar-2','avatar-3','avatar-4','avatar-5','avatar-6'];
   const avatarClass   = avatarClasses[Math.abs((user.id.charCodeAt(0) || 0) - 48) % 6];
+  const avatarUrl     = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert([{ full_name: raw, initials, avatar_class: avatarClass, user_id: user.id }])
+    .insert([{ full_name: raw, initials, avatar_class: avatarClass, avatar_url: avatarUrl, user_id: user.id }])
     .select()
     .single();
 
   if (error) {
-    // If INSERT failed due to a race condition or constraint, try SELECT again
+    // avatar_url column not yet added (migration pending) — retry without it
+    if (error.code === '42703' || error.message?.includes('avatar_url')) {
+      const { data: d2, error: e2 } = await supabase
+        .from('profiles')
+        .insert([{ full_name: raw, initials, avatar_class: avatarClass, user_id: user.id }])
+        .select()
+        .single();
+      if (e2) {
+        if (e2.code === '23505' || e2.code === '42501' || e2.message?.includes('policy')) {
+          const { data: r2rows, error: re } = await supabase.from('profiles').select('*').eq('user_id', user.id).order('created_at', { ascending: true }).limit(1);
+          if (re) throw re;
+          if (r2rows?.[0]) return r2rows[0];
+        }
+        throw e2;
+      }
+      return d2;
+    }
+    // Race condition or RLS — try to SELECT the row that won the race
     if (error.code === '23505' || error.code === '42501' || error.message?.includes('policy')) {
-      const { data: retry, error: re } = await supabase
+      const { data: retryRows, error: re } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
       if (re) throw re;
-      if (retry) return retry;
+      if (retryRows?.[0]) return retryRows[0];
     }
     throw error;
   }
