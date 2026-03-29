@@ -234,6 +234,30 @@ export async function getAuthSession() {
 const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
 
 /**
+ * Fire-and-forget transactional email via the send-email Edge Function.
+ * Never throws -- email failures are non-fatal.
+ * @param {'welcome'|'review_submitted'|'review_received'} type
+ * @param {object} payload
+ */
+async function fireEmail(type, payload) {
+  try {
+    const { data: s } = await supabase.auth.getSession();
+    const token = s?.session?.access_token || SUPABASE_ANON_KEY;
+    await fetch(`${EDGE_BASE}/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ type, ...payload }),
+    });
+  } catch (e) {
+    console.warn('[fireEmail] non-fatal error:', e);
+  }
+}
+
+/**
  * Create a Didit verification session via the Edge Function.
  * Returns { session_id, url } — redirect the user to `url`.
  * @param {string} reviewerSessionId  UUID stored in localStorage
@@ -349,6 +373,7 @@ export async function getOrCreateMyProfile(user) {
         }
         throw e2;
       }
+      if (user.email) fireEmail('welcome', { to_email: user.email, to_name: raw });
       return d2;
     }
     // Race condition or RLS — try to SELECT the row that won the race
@@ -364,6 +389,8 @@ export async function getOrCreateMyProfile(user) {
     }
     throw error;
   }
+  // Send welcome email to the new user (fire-and-forget)
+  if (user.email) fireEmail('welcome', { to_email: user.email, to_name: raw });
   return data;
 }
 
@@ -384,7 +411,28 @@ export async function updateMyProfile(profileId, updates) {
 }
 
 /**
- * Submit a dispute for a review.
+ * Fire both review-related transactional emails after a review is submitted.
+ * Both calls are fire-and-forget and never block the UI.
+ * @param {{ reviewerEmail: string, reviewerName: string, reviewedName: string, reviewedProfileId: string, relationship: string }} opts
+ */
+export function sendReviewEmails({ reviewerEmail, reviewerName, reviewedName, reviewedProfileId, relationship }) {
+  // Confirmation to the reviewer
+  if (reviewerEmail) {
+    fireEmail('review_submitted', {
+      to_email:      reviewerEmail,
+      to_name:       reviewerName,
+      reviewed_name: reviewedName,
+      profile_id:    reviewedProfileId,
+    });
+  }
+  // Notification to the person who was reviewed (email looked up server-side)
+  if (reviewedProfileId) {
+    fireEmail('review_received', {
+      profile_id:   reviewedProfileId,
+      relationship: relationship,
+    });
+  }
+}
  * @param {string} reviewId
  * @param {'false_info'|'mistaken_identity'|'harassment'|'spam'|'privacy'|'other'} reason
  * @param {string} [details]

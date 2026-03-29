@@ -17,7 +17,7 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _createDiditSession, _verifyDiditSession,
     _fetchLinkedInRecommendations,
     _saveWaitlistEntry,
-    _signOut, _getOrCreateMyProfile, _updateMyProfile, _submitReviewDispute;
+    _signOut, _getOrCreateMyProfile, _updateMyProfile, _submitReviewDispute, _sendReviewEmails;
 
 async function loadSupabase() {
   if (_supabase) return;
@@ -44,6 +44,7 @@ async function loadSupabase() {
     _getOrCreateMyProfile         = mod.getOrCreateMyProfile;
     _updateMyProfile              = mod.updateMyProfile;
     _submitReviewDispute          = mod.submitReviewDispute;
+    _sendReviewEmails              = mod.sendReviewEmails;
 
     // Listen for OAuth callbacks on all pages
     _supabase.auth.onAuthStateChange(async (event, session) => {
@@ -593,7 +594,23 @@ function submitReview() {
       review_text:           textarea.value.trim(),
     };
     _submitReview(review)
-      .then(() => openModal('successModal'))
+      .then(async () => {
+        // Fire review emails (fire-and-forget)
+        try {
+          const session = _getAuthSession ? await _getAuthSession() : null;
+          if (session && _sendReviewEmails) {
+            const meta = session.user.user_metadata || {};
+            _sendReviewEmails({
+              reviewerEmail:     session.user.email || '',
+              reviewerName:      (meta.full_name || meta.name || 'Someone').trim(),
+              reviewedName:      state.selectedPerson || 'Someone',
+              reviewedProfileId: state.selectedPersonId || '',
+              relationship:      state.selectedRelationship || 'other',
+            });
+          }
+        } catch { /* non-fatal */ }
+        openModal('successModal');
+      })
       .catch(err => {
         showFormError('Submission failed: ' + err.message);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review'; }
