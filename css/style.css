@@ -1249,14 +1249,15 @@ section           { padding: 100px 0; }
 /* ── Hero waitlist row ─────────────────────────────────────────────────────── */
 .hero__waitlist-row {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   margin-top: 18px;
-  flex-wrap: wrap;
 }
 .hero__waitlist-note {
   font-size: 0.8rem;
   color: var(--text-muted);
+  text-align: center;
 }
 
 /* ── Waitlist Modal ────────────────────────────────────────────────────────── */
