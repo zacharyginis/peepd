@@ -2,8 +2,8 @@
   "name": "peepd",
   "version": "1.0.0",
   "scripts": {
-    "start": "serve -l 3000",
-    "dev": "serve -l 3000",
+    "start": "node dev-server.js",
+    "dev": "node dev-server.js",
     "format": "prettier --write \"**/*.{html,css,js}\" --ignore-path .gitignore",
     "lint": "eslint js/**/*.js",
     "lint:fix": "eslint js/**/*.js --fix"

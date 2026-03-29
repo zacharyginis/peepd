@@ -13,6 +13,7 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _getReviewsForProfile, _submitReview,
     _castAccuracyVote, _subscribeToReviews, _subscribeToScore,
     _getSocialConnections, _saveSocialConnection,
+  _getProfileBySlug,
     _signInWithOAuthProvider, _getAuthSession,
     _createDiditSession, _verifyDiditSession,
     _fetchLinkedInRecommendations,
@@ -35,6 +36,7 @@ async function loadSupabase() {
     const mod = await import('./supabase.js?v=5');
     _supabase               = mod.supabase;
     _getProfile             = mod.getProfile;
+    _getProfileBySlug       = mod.getProfileBySlug;
     _getTopProfiles         = mod.getTopProfiles;
     _searchProfiles         = mod.searchProfiles;
     _getReviewsForProfile   = mod.getReviewsForProfile;
@@ -87,18 +89,155 @@ const state = {
   pledgeSigned:         false,
 };
 
+const RESERVED_PROFILE_ROUTES = new Set([
+  '',
+  'profile',
+  'write-review',
+  'privacy-policy',
+  'terms',
+  'cookies',
+  'my-profile',
+  'how-it-works',
+  'index.html',
+  'profile.html',
+  'write-review.html',
+  'privacy-policy.html',
+  'terms-of-service.html',
+  'cookie-policy.html',
+  'my-profile.html',
+  'how-it-works.html',
+]);
+
+function normalizeProfileSlug(value) {
+  return (value || '')
+    .toString()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function buildProfilePath(profile) {
+  const slug = normalizeProfileSlug(profile?.slug || profile?.full_name || 'profile');
+  return slug ? `/${slug}` : '/profile';
+}
+
+function getRequestedProfileSlug() {
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+  if (!path || RESERVED_PROFILE_ROUTES.has(path)) return null;
+  return normalizeProfileSlug(decodeURIComponent(path));
+}
+
 // ─── Current profile ID — set from URL param ?id=<uuid> or falls back to demo ─
 const DEMO_PROFILE_ID = null; // set to a real UUID after seeding
 
 function getProfileId() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('id') || DEMO_PROFILE_ID;
+  return window._publicProfileRecord?.id || params.get('id') || DEMO_PROFILE_ID;
+}
+
+async function resolvePublicProfile() {
+  const isProfilePage = document.body.classList.contains('profile-page');
+  if (!isProfilePage) return null;
+  if (window._publicProfileRecord) return window._publicProfileRecord;
+
+  const params = new URLSearchParams(window.location.search);
+  const profileId = params.get('id');
+  const profileSlug = getRequestedProfileSlug();
+
+  if (!_getProfile && !_getProfileBySlug) return null;
+
+  let profile = null;
+  try {
+    if (profileId && _getProfile) {
+      profile = await _getProfile(profileId);
+    } else if (profileSlug && _getProfileBySlug) {
+      profile = await _getProfileBySlug(profileSlug);
+    }
+  } catch (e) {
+    console.warn('Public profile resolve failed:', e);
+    return null;
+  }
+
+  if (!profile) return null;
+
+  window._publicProfileRecord = profile;
+  applyPublicProfileData(profile);
+
+  const canonicalPath = buildProfilePath(profile);
+  const currentPath = window.location.pathname;
+  if (canonicalPath && currentPath !== canonicalPath) {
+    window.history.replaceState({}, '', canonicalPath);
+  }
+
+  return profile;
+}
+
+function applyPublicProfileData(profile) {
+  document.title = `${profile.full_name || 'Profile'} — Peepd Profile`;
+
+  const hero = document.querySelector('.profile-hero');
+  if (!hero) return;
+
+  const avatarEl = hero.querySelector('.profile-hero__left .avatar');
+  const nameEl = hero.querySelector('.profile-hero__name');
+  const metaEl = hero.querySelector('.profile-hero__meta');
+  const summaryEl = hero.querySelector('.profile-hero__summary');
+  const tierBadge = hero.querySelector('.badge--tier-elite, .badge--tier-trusted, .badge--tier-established, .badge--tier-emerging, .badge--tier-phantom, .badge--tier-legendary');
+  const scoreTierEl = document.querySelector('.score-gauge__tier');
+  const reviewTabCount = document.querySelector('[data-tab="reviews"] .tab-count');
+
+  if (avatarEl) {
+    if (profile.avatar_url) {
+      avatarEl.className = 'avatar avatar--photo avatar-xl';
+      avatarEl.innerHTML = `<img src="${escHtml(profile.avatar_url)}" alt="${escHtml(profile.initials || profile.full_name || '')}" loading="lazy">`;
+    } else {
+      avatarEl.className = `avatar ${profile.avatar_class || 'avatar-1'} avatar-xl`;
+      avatarEl.textContent = profile.initials || (profile.full_name || '').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+    }
+  }
+
+  if (nameEl) nameEl.textContent = profile.full_name || 'Peepd Profile';
+
+  if (metaEl) {
+    const metaParts = [
+      profile.title ? `<span><i class="fas fa-briefcase"></i> ${escHtml(profile.title)}</span>` : '',
+      profile.company ? `<span><i class="fas fa-building"></i> ${escHtml(profile.company)}</span>` : '',
+      profile.location ? `<span><i class="fas fa-map-pin"></i> ${escHtml(profile.location)}</span>` : '',
+      profile.created_at ? `<span><i class="fas fa-calendar"></i> Joined Peepd ${escHtml(new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }))}</span>` : '',
+    ].filter(Boolean);
+    metaEl.innerHTML = metaParts.join('');
+  }
+
+  if (summaryEl) {
+    const reviews = Number(profile.review_count || 0);
+    const tier = profile.tier || 'Emerging';
+    const score = Number(profile.peep_score || 0);
+    summaryEl.textContent = profile.bio
+      || `${profile.full_name || 'This person'} has a Peepd Score of ${score} with ${reviews} verified review${reviews === 1 ? '' : 's'}, placing them in the ${tier} tier.`;
+  }
+
+  if (tierBadge && profile.tier) {
+    tierBadge.textContent = `${tierEmoji(profile.tier)} ${profile.tier} Tier`;
+    tierBadge.className = `badge badge--tier-${String(profile.tier).toLowerCase()}`;
+  }
+
+  if (scoreTierEl) scoreTierEl.textContent = profile.tier || 'Phantom';
+  if (reviewTabCount) reviewTabCount.textContent = profile.review_count || 0;
+
+  const scoreValue = document.getElementById('scoreValue');
+  const gaugeArc = document.getElementById('gaugeArc');
+  if (scoreValue && gaugeArc) {
+    scoreValue.textContent = '0';
+    animateGauge(gaugeArc, scoreValue, Number(profile.peep_score || 0), 1000, GAUGE_CIRCUMFERENCE);
+  }
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   injectAnimations();
   await loadSupabase();
+  await resolvePublicProfile();
   init();
   initNavUserMenu().catch(e => console.warn('NavUserMenu:', e));
   loadMyProfilePage().catch(e => console.warn('MyProfile:', e));
@@ -891,8 +1030,9 @@ function renderSearchDropdown(results, dropdown) {
   }
   dropdown.innerHTML = results.map(p => {
     const meta = [p.title, p.company].filter(Boolean).map(escHtml).join(' · ');
+    const href = buildProfilePath(p);
     return `
-      <a href='/profile?id=${encodeURIComponent(p.id)}" class="search-result-item">
+      <a href="${href}" class="search-result-item">
         ${mkAvatarHtml(p)}
         <div class="search-result-info">
           <div class="search-result-name">${escHtml(p.full_name)}</div>
@@ -918,7 +1058,7 @@ async function navigateToFirstResult(input, dropdown) {
   try {
     const results = await _searchProfiles(q);
     if (results && results.length > 0) {
-      window.location.href = `/profile?id=${encodeURIComponent(results[0].id)}`;
+      window.location.href = buildProfilePath(results[0]);
     } else {
       if (dropdown) renderSearchDropdown([], dropdown);
     }
@@ -936,7 +1076,7 @@ async function loadTopProfiles() {
     const profiles = await _getTopProfiles(6);
     if (!profiles || profiles.length === 0) return;
     grid.innerHTML = profiles.map(p => `
-      <a href='/profile?id=${p.id}" class="card card--glow profile-card fade-up">
+      <a href="${buildProfilePath(p)}" class="card card--glow profile-card fade-up">
         <div class="profile-card__top">
           ${mkAvatarHtml(p)}
           <div class="profile-card__info">
@@ -968,10 +1108,21 @@ async function loadReviews(profileId) {
   if (!panel) return;
   try {
     const reviews = await _getReviewsForProfile(profileId);
-    if (!reviews || reviews.length === 0) return;
+    const existingCards = panel.querySelectorAll('.review-card');
+    existingCards.forEach((card) => card.remove());
+
     const list = panel.querySelector('.review-list') || panel;
     // Inject reviews above the "Load more" button
     const loadMoreBtn = panel.querySelector('.load-more-btn');
+    if (!reviews || reviews.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'card';
+      empty.style.cssText = 'padding:24px; text-align:center; color:var(--text-secondary);';
+      empty.innerHTML = '<i class="fas fa-comments" style="font-size:1.5rem; margin-bottom:10px; color:var(--text-muted);"></i><p>No reviews yet for this profile.</p>';
+      if (loadMoreBtn) panel.insertBefore(empty, loadMoreBtn);
+      else list.appendChild(empty);
+      return;
+    }
     reviews.forEach(r => {
       const card = buildReviewCard(r);
       if (loadMoreBtn) panel.insertBefore(card, loadMoreBtn);
@@ -1112,9 +1263,9 @@ window.requestReviewVia          = requestReviewVia;
 function openRequestReviewModal() {
   const modal = document.getElementById('requestReviewModal');
   if (!modal) return;
-  const profileId = window._myProfileRecord?.id;
-  const url = profileId
-    ? `${window.location.origin}/profile.html?id=${profileId}`
+  const profile = window._myProfileRecord;
+  const url = profile
+    ? `${window.location.origin}${buildProfilePath(profile)}`
     : window.location.origin;
   const input = document.getElementById('rrProfileUrl');
   if (input) input.value = url;
@@ -1352,9 +1503,9 @@ async function doSignOut() {
 }
 
 async function shareProfileUrl() {
-  const id  = window._myProfileRecord?.id;
-  const url = id
-    ? `${window.location.origin}/profile.html?id=${id}`
+  const profile = window._myProfileRecord;
+  const url = profile
+    ? `${window.location.origin}${buildProfilePath(profile)}`
     : window.location.origin;
   try {
     await navigator.clipboard.writeText(url);
@@ -2246,7 +2397,8 @@ async function disconnectSocial() {
 async function initProfileSocialConnections() {
   const card = document.getElementById('profileSocialCard');
   if (!card) return;
-  const profileId = getProfileId();
+  const profile = window._publicProfileRecord || await resolvePublicProfile();
+  const profileId = profile?.id || getProfileId();
   if (!profileId || !_getSocialConnections) return;
   try {
     const connections = await _getSocialConnections(profileId);

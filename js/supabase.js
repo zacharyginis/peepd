@@ -30,6 +30,48 @@ export async function getProfile(id) {
   return data;
 }
 
+function normalizeProfileSlug(value) {
+  return (value || '')
+    .toString()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Fetch a single profile by slug-like name path (e.g. zacharyginis).
+ * Prefers a real `slug` column if present, otherwise falls back to a client-side
+ * normalized full_name match.
+ * @param {string} slug
+ */
+export async function getProfileBySlug(slug) {
+  const normalizedSlug = normalizeProfileSlug(slug);
+  if (!normalizedSlug) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('slug', normalizedSlug)
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && data) return data;
+    if (error && error.code !== '42703' && !error.message?.includes('slug')) throw error;
+  } catch (error) {
+    if (error.code !== '42703' && !error.message?.includes('slug')) throw error;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .limit(1000);
+
+  if (error) throw error;
+  return (data || []).find((profile) => normalizeProfileSlug(profile.full_name) === normalizedSlug) || null;
+}
+
 /**
  * Fetch all profiles ordered by peep_score descending.
  * @param {number} limit
