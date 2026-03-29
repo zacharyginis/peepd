@@ -268,7 +268,7 @@ function waitlistEmail(name: string): { subject: string; html: string } {
 
     <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7;text-align:center;font-family:Arial,sans-serif;">In the meantime, feel free to spread the word. The more honest people on Peepd, the better it works for everyone.</p>
 
-    ${btn('Share Peepd', '${SITE_URL}')}
+    ${btn('Share Peepd', SITE_URL)}
 
     ${divider}
 

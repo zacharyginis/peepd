@@ -13,7 +13,7 @@
   <!-- ── Navigation ─────────────────────────────────────────── -->
   <nav class="nav" id="mainNav">
     <div class="nav__inner">
-      <a href="index.html" class="nav__logo">
+      <a href="/" class="nav__logo">
         <div class="nav__logo-icon">
           <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
         </div>
@@ -24,9 +24,9 @@
         <input type="text" placeholder="Search for someone…" id="navSearch" autocomplete="off" />
       </div>
       <ul class="nav__links">
-        <li><a href="index.html" class="nav__link">Explore</a></li>
-        <li><a href="profile.html" class="nav__link">How It Works</a></li>
-        <li><a href="write-review.html" class="nav__link active">Write a Review</a></li>
+        <li><a href="/" class="nav__link">Explore</a></li>
+        <li><a href="/profile" class="nav__link">How It Works</a></li>
+        <li><a href="/write-review" class="nav__link active">Write a Review</a></li>
       </ul>
       <div class="nav__actions" id="navActions">
         <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
@@ -715,10 +715,10 @@
         <span><i class="fas fa-check"></i> Score Pending</span>
       </div>
       <div class="modal__actions">
-        <a href="profile.html" class="btn btn--primary">
+        <a href="/profile" class="btn btn--primary">
           <i class="fas fa-eye"></i> View Their Profile
         </a>
-        <a href="index.html" class="btn btn--secondary">
+        <a href="/" class="btn btn--secondary">
           <i class="fas fa-home"></i> Back to Home
         </a>
       </div>
@@ -748,7 +748,7 @@
       </div>
       <p class="auth-modal__note">
         <i class="fas fa-lock"></i>
-        Your data is never shared. By continuing you agree to our <a href="terms-of-service.html">Terms</a> &amp; <a href="privacy-policy.html">Privacy Policy</a>.
+        Your data is never shared. By continuing you agree to our <a href="/terms">Terms</a> &amp; <a href="/privacy-policy">Privacy Policy</a>.
       </p>
     </div>
   </div>

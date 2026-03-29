@@ -882,7 +882,7 @@ function renderSearchDropdown(results, dropdown) {
   dropdown.innerHTML = results.map(p => {
     const meta = [p.title, p.company].filter(Boolean).map(escHtml).join(' · ');
     return `
-      <a href="profile.html?id=${encodeURIComponent(p.id)}" class="search-result-item">
+      <a href='/profile?id=${encodeURIComponent(p.id)}" class="search-result-item">
         ${mkAvatarHtml(p)}
         <div class="search-result-info">
           <div class="search-result-name">${escHtml(p.full_name)}</div>
@@ -908,7 +908,7 @@ async function navigateToFirstResult(input, dropdown) {
   try {
     const results = await _searchProfiles(q);
     if (results && results.length > 0) {
-      window.location.href = `profile.html?id=${encodeURIComponent(results[0].id)}`;
+      window.location.href = `/profile?id=${encodeURIComponent(results[0].id)}`;
     } else {
       if (dropdown) renderSearchDropdown([], dropdown);
     }
@@ -926,7 +926,7 @@ async function loadTopProfiles() {
     const profiles = await _getTopProfiles(6);
     if (!profiles || profiles.length === 0) return;
     grid.innerHTML = profiles.map(p => `
-      <a href="profile.html?id=${p.id}" class="card card--glow profile-card fade-up">
+      <a href='/profile?id=${p.id}" class="card card--glow profile-card fade-up">
         <div class="profile-card__top">
           ${mkAvatarHtml(p)}
           <div class="profile-card__info">
@@ -1243,7 +1243,9 @@ async function submitWaitlist(e) {
       if (email && _supabase) {
         _supabase.functions.invoke('send-email', {
           body: { type: 'waitlist_confirmation', to_email: email, to_name: name },
-        }).catch(() => {});
+        }).then(({ error }) => {
+          if (error) console.warn('[send-email waitlist]', error);
+        }).catch(e => console.warn('[send-email waitlist]', e));
       }
     }
     document.getElementById('wlStateForm').style.display    = 'none';
@@ -1306,9 +1308,9 @@ async function initNavUserMenu() {
             <div class="nav__user-dropdown-email">${providerIcon} ${user.email || provider}</div>
           </div>
         </div>
-        <a href="my-profile.html" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
-        <a href="my-profile.html" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='my-profile.html';"><i class="fas fa-pen"></i> Edit Profile</a>
-        <a href="write-review.html" class="nav__dropdown-item"><i class="fas fa-pen-to-square"></i> Write a Review</a>
+        <a href="/my-profile" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
+        <a href="/my-profile" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='/my-profile';"><i class="fas fa-pen"></i> Edit Profile</a>
+        <a href="/write-review" class="nav__dropdown-item"><i class="fas fa-pen-to-square"></i> Write a Review</a>
         <button class="nav__dropdown-item" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
         <div class="nav__dropdown-divider"></div>
         <button class="nav__dropdown-item nav__dropdown-item--danger" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
@@ -1336,7 +1338,7 @@ async function doSignOut() {
   try { if (_signOut) await _signOut(); } catch (e) { console.warn('Sign-out error:', e); }
   ['peepd_social_session','peepd_id_session','peepd_reviewer_uid'].forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem('peepd_li_token');
-  window.location.href = 'index.html';
+  window.location.href = '/';
 }
 
 async function shareProfileUrl() {
