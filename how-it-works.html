@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works — Peepd</title>
+  <meta name="description" content="Learn how Peepd works — the community-powered social reputation platform where real people rate each other honestly." />
+  <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+  <style>
+    /* ── How It Works page-specific styles ─────────────────── */
+    .hiw-hero {
+      padding: 140px 0 90px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hiw-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(224,85,39,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(224,85,39,0.06) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 100%);
+    }
+    .hiw-hero::after {
+      content: '';
+      position: absolute;
+      width: 560px; height: 560px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(224,85,39,0.16) 0%, transparent 70%);
+      top: -140px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .hiw-hero__content { position: relative; z-index: 1; }
+    .hiw-hero h1 { font-size: clamp(2.4rem, 5.5vw, 3.8rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 22px; }
+    .hiw-hero p { font-size: 1.1rem; color: var(--text-secondary); max-width: 560px; margin: 0 auto; line-height: 1.75; }
+
+    /* Big Idea section */
+    .big-idea-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+    }
+    .big-idea-text h2 { font-size: clamp(1.7rem, 3.5vw, 2.5rem); margin-bottom: 22px; line-height: 1.2; }
+    .big-idea-text p  { font-size: 0.975rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 18px; }
+    .big-idea-visual {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .big-idea-visual::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+    }
+
+    /* Score display */
+    .score-display {
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 28px;
+    }
+    .score-display__number {
+      font-family: 'Sora', sans-serif;
+      font-size: 4.8rem; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, #FFD580, #E05527);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .score-display__label { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+    .score-display__subtitle { font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; }
+
+    /* Score categories */
+    .score-categories { display: flex; flex-direction: column; gap: 13px; }
+    .score-cat { display: flex; align-items: center; gap: 12px; }
+    .score-cat__icon {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; flex-shrink: 0;
+      background: rgba(224,85,39,0.12);
+      color: var(--purple-light);
+      border: 1px solid rgba(224,85,39,0.2);
+    }
+    .score-cat__label { font-size: 0.8rem; font-weight: 600; width: 100px; flex-shrink: 0; color: var(--text-secondary); }
+    .score-cat__bar   { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: var(--radius-full); overflow: hidden; }
+    .score-cat__fill  { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: var(--radius-full); }
+    .score-cat__val   { font-size: 0.78rem; font-weight: 700; color: var(--purple-light); width: 30px; text-align: right; flex-shrink: 0; }
+
+    /* Tier cards */
+    .tiers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 16px; }
+    .tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px;
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .tier-card:hover { transform: translateY(-5px); box-shadow: 0 16px 48px rgba(0,0,0,0.4); }
+    .tier-card__emoji { font-size: 2.4rem; margin-bottom: 14px; display: block; line-height: 1; }
+    .tier-card__name  { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 7px; }
+    .tier-card__range { font-size: 0.73rem; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 12px; text-transform: uppercase; }
+    .tier-card__desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.65; }
+    .tier-card--phantom     { border-top: 2px solid #64748B; }
+    .tier-card--emerging    { border-top: 2px solid #F59E0B; }
+    .tier-card--established { border-top: 2px solid #3B82F6; }
+    .tier-card--trusted     { border-top: 2px solid #6366F1; }
+    .tier-card--elite       { border-top: 2px solid #E05527; }
+    .tier-card--legendary   { border-top: 2px solid #10B981; }
+
+    /* Privacy grid */
+    .privacy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
+    .privacy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      transition: var(--transition);
+    }
+    .privacy-card:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+    .privacy-card__icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: rgba(224,85,39,0.12);
+      border: 1px solid rgba(224,85,39,0.25);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--purple-light);
+    }
+    .privacy-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 7px; }
+    .privacy-card p  { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; }
+
+    /* FAQ */
+    .faq-list { display: flex; flex-direction: column; gap: 8px; max-width: 780px; margin: 0 auto; }
+    details.faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+    details.faq-item[open] { border-color: rgba(224,85,39,0.4); }
+    details.faq-item summary {
+      padding: 20px 24px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      user-select: none;
+      color: var(--text-primary);
+    }
+    details.faq-item summary::-webkit-details-marker { display: none; }
+    details.faq-item summary:hover { color: var(--text-primary); }
+    .faq-icon {
+      width: 26px; height: 26px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 0.8rem;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+    details.faq-item[open] .faq-icon { transform: rotate(45deg); color: var(--purple-light); border-color: rgba(224,85,39,0.3); background: rgba(224,85,39,0.1); }
+    .faq-answer { padding: 0 24px 22px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.78; }
+    .faq-answer p + p { margin-top: 10px; }
+
+    /* Score scale bar */
+    .score-scale {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .score-scale__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .score-scale__header h3 { font-size: 1rem; font-weight: 700; }
+    .score-scale__header span { font-size: 0.75rem; color: var(--text-muted); }
+    .score-scale__bar {
+      position: relative; height: 14px;
+      background: var(--border);
+      border-radius: var(--radius-full);
+      overflow: hidden; margin-bottom: 12px;
+    }
+    .score-scale__fill {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
+      background: linear-gradient(90deg, #64748B 0%, #F59E0B 20%, #3B82F6 40%, #6366F1 60%, #E05527 80%, #10B981 100%);
+      border-radius: var(--radius-full);
+    }
+    .score-scale__labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .big-idea-grid { grid-template-columns: 1fr; gap: 40px; }
+      .accuracy-grid { grid-template-columns: 1fr; gap: 40px; }
+      .tiers-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .tiers-grid { grid-template-columns: repeat(2, 1fr); }
+      .score-two-col { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo">
+        <div class="nav__logo-icon">
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+        </div>
+        <span class="nav__logo-text">Peepd</span>
+      </a>
+      <div class="nav__search">
+        <i class="fas fa-search nav__search-icon"></i>
+        <input type="text" placeholder="Search for someone…" id="navSearch" autocomplete="off" />
+      </div>
+      <ul class="nav__links">
+        <li><a href="/" class="nav__link">Explore</a></li>
+        <li><a href="/how-it-works" class="nav__link active">How It Works</a></li>
+        <li><a href="/write-review" class="nav__link">Write a Review</a></li>
+      </ul>
+      <div class="nav__actions" id="navActions">
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openWaitlistModal()">Join Waitlist</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Hero ─────────────────────────────────────────────────── -->
+  <section class="hiw-hero">
+    <div class="container">
+      <div class="hiw-hero__content">
+        <div class="hero__eyebrow" style="display:inline-flex; margin-bottom:28px;">
+          <span class="hero__eyebrow-dot"></span>
+          Simple · Honest · Community-Powered
+        </div>
+        <h1>How <span class="gradient-text">Peepd</span> Works</h1>
+        <p>Your reputation is built by the people who actually know you — not by an algorithm, not by yourself. Just honest, verified reviews from real people.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── The Big Idea ─────────────────────────────────────────── -->
+  <section style="padding: 80px 0; background: var(--bg-surface);">
+    <div class="container">
+      <div class="big-idea-grid">
+
+        <div class="big-idea-text">
+          <span class="section-label">The Idea</span>
+          <h2>Your reputation, built by others. <span class="gradient-text">Not you.</span></h2>
+          <p>Everywhere online, you control how you look. Your LinkedIn profile, your Instagram feed, your résumé — they're all self-curated. You pick your best photos, your best words, your best moments.</p>
+          <p>But what do the people who've actually <em>worked</em> with you, <em>been friends</em> with you, or <em>dated</em> you think? That truth has never had a home — until now.</p>
+          <p>Peepd is the platform where your reputation is built by the people who know you. They leave honest, anonymous reviews. The community votes on accuracy. And your Peepd Score reflects reality — not a personal brand.</p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:28px;">
+            <button class="btn btn--primary" onclick="openWaitlistModal()"><i class="fas fa-rocket"></i> Join the Waitlist</button>
+            <a href="/write-review" class="btn btn--secondary"><i class="fas fa-pen"></i> Write a Review</a>
+          </div>
+        </div>
+
+        <div class="big-idea-visual">
+          <div class="score-display">
+            <div class="score-display__number">742</div>
+            <div class="score-display__label">Peepd Score</div>
+            <div class="score-display__subtitle">Top 8% of all users · 24 verified reviews</div>
+          </div>
+          <div class="score-categories">
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-fire"></i></div>
+              <div class="score-cat__label">Work Ethic</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:88%"></div></div>
+              <div class="score-cat__val">8.8</div>
+            </div>
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-clock"></i></div>
+              <div class="score-cat__label">Reliability</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:75%"></div></div>
+              <div class="score-cat__val">7.5</div>
+            </div>
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-handshake"></i></div>
+              <div class="score-cat__label">Honesty</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:92%"></div></div>
+              <div class="score-cat__val">9.2</div>
+            </div>
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-heart"></i></div>
+              <div class="score-cat__label">Character</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:81%"></div></div>
+              <div class="score-cat__val">8.1</div>
+            </div>
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-brain"></i></div>
+              <div class="score-cat__label">Intelligence</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:70%"></div></div>
+              <div class="score-cat__val">7.0</div>
+            </div>
+            <div class="score-cat">
+              <div class="score-cat__icon"><i class="fas fa-comments"></i></div>
+              <div class="score-cat__label">Social Skills</div>
+              <div class="score-cat__bar"><div class="score-cat__fill" style="width:65%"></div></div>
+              <div class="score-cat__val">6.5</div>
+            </div>
+          </div>
+          <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:0.78rem; color:var(--text-muted);">Community verified</span>
+            <span class="badge badge--tier-elite">🔮 Elite Tier</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4-Step Walkthrough ────────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">The Process</span>
+        <h2>Four simple steps</h2>
+        <p>From sign-up to a full reputation profile — it's fast, free, and straightforward.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step__number">01</div>
+          <div class="step__icon"><i class="fas fa-user-plus"></i></div>
+          <h3 class="step__title">Join Peepd</h3>
+          <p class="step__desc">Sign in with LinkedIn or Facebook in seconds. We pull your public profile — your name, photo, and basic info — so people can find and recognize you. No passwords. No long forms.</p>
+        </div>
+        <div class="step">
+          <div class="step__number">02</div>
+          <div class="step__icon"><i class="fas fa-share-nodes"></i></div>
+          <h3 class="step__title">Share Your Link</h3>
+          <p class="step__desc">You get a unique Peepd profile link. Share it with colleagues, friends, ex-teammates — anyone who knows you well. The more real reviews you have, the more accurate and powerful your score becomes.</p>
+        </div>
+        <div class="step">
+          <div class="step__number">03</div>
+          <div class="step__icon"><i class="fas fa-star"></i></div>
+          <h3 class="step__title">Reviews Come In</h3>
+          <p class="step__desc">Reviewers rate you across 6 categories and leave a written summary. They're always anonymous — so they can be completely honest. Peepd verifies that reviewers are real people, not bots or fake accounts.</p>
+        </div>
+        <div class="step">
+          <div class="step__number">04</div>
+          <div class="step__icon"><i class="fas fa-chart-line"></i></div>
+          <h3 class="step__title">Your Score Updates</h3>
+          <p class="step__desc">Your Peepd Score updates in real time as new reviews arrive. The community can vote on whether each review seems accurate — rewarding honest feedback and filtering out anything suspicious.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── The Peepd Score ───────────────────────────────────────── -->
+  <section style="background: var(--bg-surface);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">The Score</span>
+        <h2>What is your <span class="gradient-text">Peepd Score?</span></h2>
+        <p>A single number from 0 to 1000 that captures how the people who know you see you — across six dimensions that actually matter.</p>
+      </div>
+
+      <div class="score-two-col" style="display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;">
+
+        <!-- Left: scale + explanation -->
+        <div>
+          <div class="score-scale">
+            <div class="score-scale__header">
+              <h3>Your Score Scale</h3>
+              <span>0 – 1000</span>
+            </div>
+            <div class="score-scale__bar">
+              <div class="score-scale__fill"></div>
+            </div>
+            <div class="score-scale__labels">
+              <span>0 Phantom</span>
+              <span>500 Trusted</span>
+              <span>1000 Legendary</span>
+            </div>
+          </div>
+
+          <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.8; margin-bottom:16px;">Your score is a weighted average of ratings across 6 categories, adjusted by the number of reviews and the accuracy votes each one receives from the community.</p>
+          <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.8; margin-bottom:16px;">Reviews that the community marks as <strong style="color:var(--green);">Accurate</strong> carry more weight. Reviews flagged as <strong style="color:var(--red);">Inaccurate</strong> have less impact. This makes the system very hard to game.</p>
+          <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.8;">New accounts start with no score. You need at least <strong style="color:var(--purple-light);">3 verified reviews</strong> for your score to appear publicly.</p>
+        </div>
+
+        <!-- Right: 6 categories -->
+        <div>
+          <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:22px;">The 6 Rating Categories</h3>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon" style="background:rgba(224,85,39,0.12); color:var(--purple-light); border:1px solid rgba(224,85,39,0.2);">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Work Ethic</h4>
+                <p>Do they show up? Do they hustle? Are they reliable when the pressure is on?</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon" style="background:rgba(240,144,0,0.12); color:var(--cyan-light); border:1px solid rgba(240,144,0,0.2);">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Reliability</h4>
+                <p>Do they follow through? Do they keep their word and show up when it counts?</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--green">
+                <i class="fas fa-handshake"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Honesty</h4>
+                <p>Are they truthful, direct, and transparent — even when it's uncomfortable?</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--amber">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Character</h4>
+                <p>How do they treat people? Their values, integrity, and how they act when no one's watching.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon" style="background:rgba(99,102,241,0.12); color:#A5B4FC; border:1px solid rgba(99,102,241,0.2);">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Intelligence</h4>
+                <p>How sharp are they? Their reasoning, problem-solving, and ability to learn quickly.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon" style="background:rgba(59,130,246,0.12); color:#93C5FD; border:1px solid rgba(59,130,246,0.2);">
+                <i class="fas fa-comments"></i>
+              </div>
+              <div class="accuracy-feature__text">
+                <h4>Social Skills</h4>
+                <p>Can they read a room? Are they fun, easy to be around, and a strong communicator?</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── The 6 Tiers ───────────────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Reputation Tiers</span>
+        <h2>Six tiers. One goal: <span class="gradient-text">earn your rank.</span></h2>
+        <p>As your score grows, you level up through six tiers. Each one reflects how your community sees you — from unknown to legendary.</p>
+      </div>
+      <div class="tiers-grid">
+
+        <div class="tier-card tier-card--phantom">
+          <span class="tier-card__emoji">👻</span>
+          <div class="tier-card__name">Phantom</div>
+          <div class="tier-card__range" style="color:#94A3B8;">0 – 99</div>
+          <div class="tier-card__desc">Just joined. No public score yet. The world doesn't know you — but that's about to change.</div>
+        </div>
+
+        <div class="tier-card tier-card--emerging">
+          <span class="tier-card__emoji">🌱</span>
+          <div class="tier-card__name">Emerging</div>
+          <div class="tier-card__range" style="color:#FCD34D;">100 – 299</div>
+          <div class="tier-card__desc">Building your reputation. A few reviews are in and a picture is starting to form.</div>
+        </div>
+
+        <div class="tier-card tier-card--established">
+          <span class="tier-card__emoji">⭐</span>
+          <div class="tier-card__name">Established</div>
+          <div class="tier-card__range" style="color:#93C5FD;">300 – 499</div>
+          <div class="tier-card__desc">Solid reputation. People know who you are. You're trusted in your circle.</div>
+        </div>
+
+        <div class="tier-card tier-card--trusted">
+          <span class="tier-card__emoji">💎</span>
+          <div class="tier-card__name">Trusted</div>
+          <div class="tier-card__range" style="color:#A5B4FC;">500 – 699</div>
+          <div class="tier-card__desc">Widely recognized. Consistent high ratings across multiple categories and many reviewers.</div>
+        </div>
+
+        <div class="tier-card tier-card--elite">
+          <span class="tier-card__emoji">🔮</span>
+          <div class="tier-card__name">Elite</div>
+          <div class="tier-card__range" style="color:#FFBF9B;">700 – 899</div>
+          <div class="tier-card__desc">Exceptional reputation. You're in the top tier of everyone on the platform.</div>
+        </div>
+
+        <div class="tier-card tier-card--legendary">
+          <span class="tier-card__emoji">👑</span>
+          <div class="tier-card__name">Legendary</div>
+          <div class="tier-card__range" style="color:#6EE7B7;">900 – 1000</div>
+          <div class="tier-card__desc">The best of the best. Rare, revered, universally respected. Less than 1% of all users reach this tier.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Community Verification ────────────────────────────────── -->
+  <section style="background: var(--bg-surface);">
+    <div class="container">
+      <div class="accuracy-grid">
+
+        <div class="accuracy-text">
+          <span class="section-label">Accuracy Engine</span>
+          <h2>The community keeps <span class="gradient-text">scores honest.</span></h2>
+          <p>Anyone can leave a review, but not every review deserves equal weight. That's where the community comes in.</p>
+          <p>Every review on Peepd can be voted on by others. If the community agrees, the review gets more weight. If they think it's unfair or fake, it gets less. This creates a natural, self-correcting system that makes score manipulation nearly impossible.</p>
+          <div class="accuracy-feature-list">
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--green"><i class="fas fa-thumbs-up"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>Accurate Votes</h4>
+                <p>Reviews marked Accurate are weighted more heavily — up to 1.4× the base score impact.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--amber"><i class="fas fa-circle-question"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>Disputed Reviews</h4>
+                <p>Reviews with mixed community votes get a Disputed badge — visible to everyone viewing the profile.</p>
+              </div>
+            </div>
+            <div class="accuracy-feature">
+              <div class="accuracy-feature__icon accuracy-feature__icon--red"><i class="fas fa-ban"></i></div>
+              <div class="accuracy-feature__text">
+                <h4>Inaccurate Flags</h4>
+                <p>Reviews flagged Inaccurate by a clear majority are de-weighted and may be removed after manual review.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accuracy-clock-card">
+          <div class="clock-display">
+            <div style="width:72px;height:72px;border-radius:50%;background:rgba(16,185,129,0.15);border:2px solid rgba(16,185,129,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fas fa-shield-halved" style="font-size:1.9rem;color:var(--green);"></i>
+            </div>
+            <div>
+              <div class="clock-info__title">Community Verified</div>
+              <div class="clock-info__sub">Accuracy voting active on every review</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+                <span style="font-size:0.875rem;font-weight:600;">Accurate</span>
+              </div>
+              <span class="badge badge--accurate">Weighted 1.4×</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);"></div>
+                <span style="font-size:0.875rem;font-weight:600;">Disputed</span>
+              </div>
+              <span class="badge badge--disputed">Weighted 1.0×</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--red);"></div>
+                <span style="font-size:0.875rem;font-weight:600;">Inaccurate</span>
+              </div>
+              <span class="badge badge--inaccurate">Weighted 0.3×</span>
+            </div>
+          </div>
+          <p style="margin-top:20px;font-size:0.78rem;color:var(--text-muted);line-height:1.65;">This makes it nearly impossible to inflate or tank someone's score with a flood of biased reviews. The community is the source of truth.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Privacy & Anonymity ───────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Privacy</span>
+        <h2>Reviewers are always <span class="gradient-text">anonymous.</span></h2>
+        <p>We built Peepd from the ground up so that reviewers can always be 100% honest, without fear of awkwardness or retaliation.</p>
+      </div>
+      <div class="privacy-grid">
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-user-secret"></i></div>
+          <div>
+            <h4>Full Reviewer Anonymity</h4>
+            <p>The person you're reviewing will never know it was you. Your name, photo, and account are completely hidden from them. Always. This is non-negotiable.</p>
+          </div>
+        </div>
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-lock"></i></div>
+          <div>
+            <h4>No Indirect Clues</h4>
+            <p>We don't show who has "viewed" your profile either. There's no timing trick, no breadcrumb trail — no way to figure out who left a review.</p>
+          </div>
+        </div>
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <h4>Real People Only</h4>
+            <p>Every reviewer must have a verified LinkedIn or Facebook account. We filter bots, duplicate accounts, and suspicious activity before a review counts.</p>
+          </div>
+        </div>
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-flag"></i></div>
+          <div>
+            <h4>Abuse Protection</h4>
+            <p>You can report any review you believe is malicious, false, or a targeted attack. Our team investigates flagged content within 24 hours.</p>
+          </div>
+        </div>
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-eye-slash"></i></div>
+          <div>
+            <h4>You're in Control</h4>
+            <p>You can make your profile private, pause new reviews, or delete your account at any time. All your data is permanently erased within 30 days of deletion.</p>
+          </div>
+        </div>
+
+        <div class="privacy-card">
+          <div class="privacy-card__icon"><i class="fas fa-file-shield"></i></div>
+          <div>
+            <h4>Data Privacy</h4>
+            <p>We never sell your personal data. Review data is stored securely and never used for advertising. Read our <a href="/privacy-policy" style="color:var(--purple-light); text-decoration:underline;">Privacy Policy</a>.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────────────────── -->
+  <section style="background: var(--bg-surface);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">FAQ</span>
+        <h2>Common questions, <span class="gradient-text">answered simply.</span></h2>
+        <p>Tap any question to expand the answer.</p>
+      </div>
+      <div class="faq-list">
+
+        <details class="faq-item">
+          <summary>Can I opt out of being reviewed?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>Yes. You can set your profile to private at any time, which hides your score and reviews from the public. You can also pause new reviews temporarily if you want a break. If you want to remove your profile entirely, you can delete your account — all data is permanently erased within 30 days.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What stops someone from writing a fake or vengeful review?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>Several things. First, every reviewer must have a verified social media account — no anonymous burner accounts. Second, the community votes on accuracy — a suspicious one-star bomb gets flagged fast. Third, you can report any review and our team investigates within 24 hours. Confirmed fake reviews are removed and the reviewer's account is penalized or banned.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is Peepd free to use?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>Yes. Creating a profile, receiving reviews, and viewing public profiles is completely free. We plan to offer optional premium features in the future — things like detailed score analytics and verified profile badges — but the core experience will always be free.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How do I get more reviews?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>The easiest way is to share your Peepd profile link directly with people who know you. Copy it from your profile page and send it to colleagues, friends, or classmates. You can also use the "Request Reviews" feature from your profile to send a polite nudge to people in your network.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Will the person I'm reviewing know it was me?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>No. Reviewers are always 100% anonymous. The person you review will never see your name, photo, or any identifying information. This is a core, non-negotiable feature of Peepd — we believe genuine honesty requires genuine anonymity.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How is the Peepd Score actually calculated?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>Your score is a weighted average of ratings across 6 categories: Work Ethic, Reliability, Honesty, Character, Intelligence, and Social Skills. Each category is rated 1–10. The average is then adjusted based on community accuracy votes — Accurate reviews carry 1.4× weight, Inaccurate reviews carry 0.3× weight. The final number is scaled to 0–1000. You need at least 3 reviews for a public score.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I see who viewed my profile?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>No. To protect reviewer anonymity end-to-end, we don't show profile view history to anyone. Even if viewing patterns could be used to infer a reviewer's identity, we choose not to expose that data. Privacy is more important than a feature.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>When is Peepd launching?<span class="faq-icon"><i class="fas fa-plus"></i></span></summary>
+          <div class="faq-answer">
+            <p>We're targeting Q2 2026 for our public launch. Until then, you can join the waitlist to be among the first to get access. Waitlist members will also get early-adopter perks and the ability to invite friends ahead of the public rollout.</p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ────────────────────────────────────────────────────── -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-section__inner">
+        <span class="section-label" style="display:block; margin-bottom:18px;">Ready?</span>
+        <h2>Your reputation is <span class="gradient-text">already out there.</span></h2>
+        <p>People already have opinions about you. Now they have a place to put them — and you have a way to build the reputation you've actually earned.</p>
+        <div class="cta-actions">
+          <button class="btn btn--primary btn--lg" onclick="openWaitlistModal()"><i class="fas fa-rocket"></i> Join the Waitlist</button>
+          <a href="/write-review" class="btn btn--secondary btn--lg"><i class="fas fa-pen"></i> Write a Review</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="/" class="nav__logo" style="display:inline-flex; margin-bottom:12px;">
+            <div class="nav__logo-icon">
+              <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+            </div>
+            <span class="nav__logo-text">Peepd</span>
+          </a>
+          <p>The world's first community-powered social reputation platform. Honest scores built by real people — never by algorithms alone.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="/">Explore</a></li>
+            <li><a href="/profile">View Profile</a></li>
+            <li><a href="/write-review">Write a Review</a></li>
+            <li><a href="#">Leaderboard</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+            <li><a href="#">Accuracy Engine</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="#">Review Guidelines</a></li>
+            <li><a href="#">Report Abuse</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2026 Peepd Inc. All rights reserved. Reviews are peer-generated and do not reflect the views of Peepd.</p>
+        <div class="footer__bottom-links">
+          <a href="/privacy-policy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/cookies">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Auth Modal ─────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+      <div class="auth-modal__logo">
+        <img src="img/logo-light.svg" alt="Peepd" />
+      </div>
+      <h2 id="authModalTitle">Sign in to Peepd</h2>
+      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in. We only request your public profile &amp; connection count.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
+          <i class="fab fa-linkedin"></i>
+          <span>Continue with LinkedIn</span>
+        </button>
+        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
+          <i class="fab fa-facebook"></i>
+          <span>Continue with Facebook</span>
+        </button>
+      </div>
+      <p class="auth-modal__note">
+        <i class="fas fa-lock"></i>
+        Your data is never shared. By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Waitlist Modal ─────────────────────────────────────────── -->
+  <div class="modal-overlay" id="waitlistModal" onclick="closeWaitlistModal(event)">
+    <div class="modal waitlist-modal">
+      <button class="auth-modal__close" onclick="closeWaitlistModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+      <div id="wlStateForm">
+        <div class="waitlist-modal__header">
+          <div class="waitlist-modal__icon"><i class="fas fa-list-ul"></i></div>
+          <h2>Join the Waitlist</h2>
+          <p>Be among the first to get access when Peepd opens to the public.</p>
+        </div>
+        <form id="waitlistForm" novalidate>
+          <div class="wl-field-row">
+            <div class="wl-field">
+              <label class="wl-label" for="wlName">Full Name <span class="wl-required">*</span></label>
+              <input type="text" id="wlName" class="social-input" placeholder="Jane Smith" autocomplete="name" />
+            </div>
+            <div class="wl-field">
+              <label class="wl-label" for="wlEmail">Email <span class="wl-required">*</span></label>
+              <input type="email" id="wlEmail" class="social-input" placeholder="jane@example.com" autocomplete="email" />
+            </div>
+          </div>
+          <div class="wl-field-row">
+            <div class="wl-field">
+              <label class="wl-label" for="wlLinkedin">LinkedIn URL</label>
+              <input type="url" id="wlLinkedin" class="social-input" placeholder="https://linkedin.com/in/..." autocomplete="off" />
+            </div>
+            <div class="wl-field">
+              <label class="wl-label" for="wlBirthdate">Date of Birth <span class="wl-required">*</span></label>
+              <input type="date" id="wlBirthdate" class="social-input" />
+            </div>
+          </div>
+          <div class="wl-field">
+            <label class="wl-label" for="wlSource">How did you find us? <span class="wl-required">*</span></label>
+            <select id="wlSource" class="social-input">
+              <option value="">— Select one —</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="twitter_x">X / Twitter</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="google">Google Search</option>
+              <option value="friend">A friend told me</option>
+              <option value="word_of_mouth">Word of mouth</option>
+              <option value="press">Press / Media</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div id="wlError" class="wl-error" style="display:none;"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%; margin-top:4px;" id="wlSubmitBtn">
+            <i class="fas fa-paper-plane"></i> Request Access
+          </button>
+        </form>
+        <p class="auth-modal__note" style="margin-top:14px;">
+          <i class="fas fa-lock"></i>
+          We'll never spam you. By joining you agree to our <a href="/privacy-policy">Privacy Policy</a>.
+        </p>
+      </div>
+      <div id="wlStateSuccess" style="display:none; text-align:center; padding:8px 0;">
+        <div class="waitlist-modal__success-icon"><i class="fas fa-circle-check"></i></div>
+        <h2 style="margin-bottom:10px;">You're on the list! 🎉</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">We'll email you at <strong id="wlSuccessEmail"></strong> when Peepd opens up. You'll be among the first to know.</p>
+        <button class="btn btn--secondary" style="width:100%;" onclick="closeWaitlistModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3"></script>
+</body>
+</html>
