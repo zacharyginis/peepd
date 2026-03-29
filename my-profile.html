@@ -45,7 +45,7 @@
   <div id="myProfileNoSession" style="display:none; min-height:60vh; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:60px 24px; text-align:center;">
     <i class="fas fa-user-lock" style="font-size:3rem; color:var(--border-accent); margin-bottom:8px;"></i>
     <h2>Sign in to view your profile</h2>
-    <p style="color:var(--text-muted); max-width:360px; line-height:1.7;">Connect with LinkedIn or Facebook to see and manage your Peepd profile, dispute reviews, and track your Peep Score.</p>
+    <p style="color:var(--text-muted); max-width:360px; line-height:1.7;">Connect with LinkedIn or Facebook to see and manage your Peepd profile, dispute reviews, and track your Peepd Score.</p>
     <button class="btn btn--primary btn--lg" onclick="openAuthModal('signin')"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
   </div>
 
@@ -92,7 +92,7 @@
             </svg>
             <div class="score-gauge__center">
               <div class="score-gauge__value" id="scoreValue">0</div>
-              <div class="score-gauge__label">PEEP SCORE</div>
+              <div class="score-gauge__label">PEEPD SCORE</div>
               <div class="score-gauge__tier">Phantom</div>
             </div>
           </div>
@@ -162,7 +162,7 @@
             <div class="stats-grid">
               <div class="stat-card"><div class="stat-card__value" id="stReviewCount">0</div><div class="stat-card__label">Total Reviews</div></div>
               <div class="stat-card"><div class="stat-card__value" id="stAccuracy">—</div><div class="stat-card__label">Avg Accuracy</div></div>
-              <div class="stat-card"><div class="stat-card__value" id="stScore">0</div><div class="stat-card__label">Peep Score</div></div>
+              <div class="stat-card"><div class="stat-card__value" id="stScore">0</div><div class="stat-card__label">Peepd Score</div></div>
               <div class="stat-card"><div class="stat-card__value" id="stTier">—</div><div class="stat-card__label">Tier</div></div>
             </div>
           </div>
@@ -191,7 +191,7 @@
             <div class="sidebar-stats">
               <div class="sidebar-stat"><span class="sidebar-stat__label">Total Reviews</span><span class="sidebar-stat__val" id="sbReviewCount">—</span></div>
               <div class="sidebar-stat"><span class="sidebar-stat__label">Accuracy Rate</span><span class="sidebar-stat__val text-green" id="sbAccuracy">—</span></div>
-              <div class="sidebar-stat"><span class="sidebar-stat__label">Peep Score</span><span class="sidebar-stat__val" id="sbScore">—</span></div>
+              <div class="sidebar-stat"><span class="sidebar-stat__label">Peepd Score</span><span class="sidebar-stat__val" id="sbScore">—</span></div>
               <div class="sidebar-stat"><span class="sidebar-stat__label">Current Tier</span><span class="sidebar-stat__val" id="sbTier">—</span></div>
             </div>
           </div>
@@ -212,7 +212,7 @@
           <!-- Request Reviews Card -->
           <div class="card rr-sidebar-card" style="padding:24px; margin-bottom:16px;">
             <h3 class="sidebar-heading" style="margin-bottom:10px;"><i class="fas fa-paper-plane" style="color:var(--purple-light);"></i> Get More Reviews</h3>
-            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">More reviews = higher Peep Score. Ask colleagues, friends, and peers who know you.</p>
+            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">More reviews = higher Peepd Score. Ask colleagues, friends, and peers who know you.</p>
             <button class="btn btn--primary" style="width:100%;" onclick="openRequestReviewModal()">
               <i class="fas fa-share-nodes"></i> Request Reviews
             </button>
@@ -371,7 +371,7 @@
       <button class="auth-modal__close" onclick="closeRequestReviewModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
       <div class="rr-modal__icon"><i class="fas fa-paper-plane"></i></div>
       <h2>Ask for Reviews</h2>
-      <p>Share your profile with people who know you. Their honest reviews raise your Peep Score.</p>
+      <p>Share your profile with people who know you. Their honest reviews raise your Peepd Score.</p>
 
       <div class="rr-url-box">
         <input type="text" id="rrProfileUrl" class="rr-url-input" readonly placeholder="Loading your link…" />
