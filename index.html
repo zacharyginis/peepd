@@ -6,7 +6,7 @@
   <title>Peepd — Your Social Reputation Score</title>
   <meta name="description" content="The world's first community-powered social reputation platform. See what the world really thinks." />
   <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -491,15 +491,11 @@
         <img src="img/logo-light.svg" alt="Peepd" />
       </div>
       <h2 id="authModalTitle">Sign in to Peepd</h2>
-      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in. We only request your public profile &amp; connection count.</p>
+      <p id="authModalDesc">Connect with LinkedIn to sign in. We only request your public profile &amp; connection count.</p>
       <div class="auth-modal__platforms">
         <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
           <i class="fab fa-linkedin"></i>
           <span>Continue with LinkedIn</span>
-        </button>
-        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
-          <i class="fab fa-facebook"></i>
-          <span>Continue with Facebook</span>
         </button>
       </div>
       <p class="auth-modal__note">
@@ -580,6 +576,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>

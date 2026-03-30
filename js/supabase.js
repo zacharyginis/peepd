@@ -230,12 +230,14 @@ export async function saveSocialConnection({ profile_id, platform, handle, follo
 // ─── Auth ───────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Sign in via OAuth (facebook or linkedin_oidc).
+ * Sign in via OAuth (LinkedIn only).
  * Redirects the browser to the provider login page.
  */
 export async function signInWithOAuthProvider(provider, overrideRedirectTo = null) {
+  if (provider !== 'linkedin_oidc') {
+    throw new Error('Only LinkedIn sign-in is currently available.');
+  }
   const scopeMap = {
-    facebook:      'public_profile,email,user_friends',
     linkedin_oidc: 'openid,profile,email',
   };
   const { data, error } = await supabase.auth.signInWithOAuth({

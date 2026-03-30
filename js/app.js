@@ -33,7 +33,7 @@ async function loadSupabase() {
         document.head.appendChild(s);
       });
     }
-    const mod = await import('./supabase.js?v=6');
+    const mod = await import('./supabase.js?v=7');
     _supabase               = mod.supabase;
     _getProfile             = mod.getProfile;
     _getProfileBySlug       = mod.getProfileBySlug;
@@ -62,7 +62,7 @@ async function loadSupabase() {
     _supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         const provider = session.user?.app_metadata?.provider;
-        if (provider === 'facebook' || provider === 'linkedin_oidc') {
+        if (provider === 'linkedin_oidc') {
           if (document.getElementById('socialGate')) {
             await handleSocialOAuthCallback(session);
           }
@@ -1248,6 +1248,11 @@ window.closeWaitlistModal    = closeWaitlistModal;
 window.toggleNavUserMenu     = toggleNavUserMenu;
 window.doSignOut             = doSignOut;
 window.shareProfileUrl       = shareProfileUrl;
+window.openShareScoreModal   = openShareScoreModal;
+window.closeShareScoreModal  = closeShareScoreModal;
+window.selectScoreAudience   = selectScoreAudience;
+window.copyScoreShareLink    = copyScoreShareLink;
+window.shareScoreVia         = shareScoreVia;
 window.openDisputeModal      = openDisputeModal;
 window.closeDisputeModal     = closeDisputeModal;
 window.submitDisputeForm     = submitDisputeForm;
@@ -1316,6 +1321,155 @@ function requestReviewVia(channel) {
   }
 }
 
+const SCORE_SHARE_AUDIENCES = {
+  boss: {
+    label: 'Sharing with a boss',
+    subject: (context) => `A quick snapshot of how my peers experience working with me`,
+    body: (context) => `Hi — I wanted to share my Peep’d profile as a quick snapshot of how people experience working with me. I’m currently at a Peep’d Score of ${context.score} in the ${context.tier} tier, based on ${context.reviewCountText}.\n\nHere’s my profile: ${context.url}\n\nI thought it might be a helpful extra signal alongside my work history.`
+  },
+  recruiter: {
+    label: 'Sharing with a recruiter',
+    subject: (context) => `My Peep’d profile and peer reputation snapshot`,
+    body: (context) => `Hi — sharing one extra data point that may help as you evaluate me. My Peep’d Score is currently ${context.score} (${context.tier} tier), based on ${context.reviewCountText}.\n\nProfile: ${context.url}\n\nIt’s a live snapshot of how peers rate my reliability, character, and work style.`
+  },
+  date: {
+    label: 'Sharing with a date',
+    subject: (context) => `A very 2026 way to vouch for myself 😄`,
+    body: (context) => `Okay, this is a little bold, but funny and real: my Peep’d Score is ${context.score} in the ${context.tier} tier, based on ${context.reviewCountText}.\n\nIf you’re curious, here’s my profile: ${context.url}\n\nBasically: third-party proof I’m hopefully as solid as I seem.`
+  },
+  client: {
+    label: 'Sharing with a client',
+    subject: (context) => `My Peep’d profile for credibility and references`,
+    body: (context) => `Hi — if helpful, here’s my Peep’d profile as a quick credibility snapshot. My current Peep’d Score is ${context.score} in the ${context.tier} tier, based on ${context.reviewCountText}.\n\nProfile: ${context.url}\n\nIt gives a concise view of how peers and collaborators rate working with me.`
+  },
+};
+
+function getShareScoreContext() {
+  const profile = window._myProfileRecord;
+  const url = profile
+    ? `${window.location.origin}${buildProfilePath(profile)}`
+    : window.location.origin;
+  const reviewCount = Number(profile?.review_count || 0);
+  return {
+    profile,
+    url,
+    name: profile?.full_name || 'I',
+    firstName: (profile?.full_name || 'I').split(' ')[0],
+    score: Number(profile?.peep_score || 0),
+    tier: profile?.tier || 'Emerging',
+    reviewCount,
+    reviewCountText: reviewCount === 1 ? '1 review' : `${reviewCount} reviews`,
+  };
+}
+
+function getSelectedScoreAudience() {
+  return window._scoreShareAudience || 'boss';
+}
+
+function buildScoreShareMessage(audience = getSelectedScoreAudience()) {
+  const context = getShareScoreContext();
+  const preset = SCORE_SHARE_AUDIENCES[audience] || SCORE_SHARE_AUDIENCES.boss;
+  return {
+    audience,
+    title: preset.label,
+    subject: preset.subject(context),
+    body: preset.body(context),
+    context,
+  };
+}
+
+function renderScoreShareComposer() {
+  const { title, body, context, audience } = buildScoreShareMessage();
+  const titleEl = document.getElementById('ssAudienceTitle');
+  const scoreEl = document.getElementById('ssScoreValue');
+  const tierEl = document.getElementById('ssTierValue');
+  const reviewEl = document.getElementById('ssReviewValue');
+  const urlEl = document.getElementById('ssProfileUrl');
+  const previewEl = document.getElementById('ssMessagePreview');
+
+  if (titleEl) titleEl.textContent = title;
+  if (scoreEl) scoreEl.textContent = context.score;
+  if (tierEl) tierEl.textContent = context.tier;
+  if (reviewEl) reviewEl.textContent = context.reviewCount;
+  if (urlEl) urlEl.value = context.url;
+  if (previewEl) previewEl.value = body;
+
+  document.querySelectorAll('.score-audience-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.audience === audience);
+  });
+}
+
+function openShareScoreModal() {
+  const modal = document.getElementById('shareScoreModal');
+  if (!modal) {
+    if (window.location.pathname !== '/my-profile') {
+      window.location.href = '/my-profile';
+    } else {
+      shareProfileUrl();
+    }
+    return;
+  }
+  window._scoreShareAudience = 'boss';
+  renderScoreShareComposer();
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeShareScoreModal(e) {
+  if (e && e.target !== e.currentTarget && e.type === 'click') return;
+  const modal = document.getElementById('shareScoreModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectScoreAudience(audience) {
+  window._scoreShareAudience = audience;
+  renderScoreShareComposer();
+}
+
+function copyScoreShareLink() {
+  const input = document.getElementById('ssProfileUrl');
+  if (!input) return;
+  const btn = document.getElementById('ssLinkCopyBtn');
+  const reset = () => { if (btn) btn.innerHTML = '<i class="fas fa-link"></i>'; };
+  const done = () => { if (btn) btn.innerHTML = '<i class="fas fa-check"></i>'; setTimeout(reset, 2000); showToast('Profile link copied!', 'success'); };
+  navigator.clipboard.writeText(input.value).then(done).catch(() => {
+    try { input.select(); document.execCommand('copy'); done(); } catch { showToast('Copy failed — select the link manually.', 'error'); }
+  });
+}
+
+async function shareScoreVia(channel) {
+  const { subject, body } = buildScoreShareMessage();
+  if (channel === 'copy') {
+    try {
+      await navigator.clipboard.writeText(body);
+      showToast('Message copied!', 'success');
+    } catch {
+      const preview = document.getElementById('ssMessagePreview');
+      if (preview) {
+        preview.focus();
+        preview.select();
+      }
+      showToast('Copy failed — select the message manually.', 'error');
+    }
+    return;
+  }
+  if (channel === 'sms') {
+    window.location.href = `sms:?&body=${encodeURIComponent(body)}`;
+    return;
+  }
+  if (channel === 'email') {
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    return;
+  }
+  if (channel === 'linkedin') {
+    navigator.clipboard.writeText(body).catch(() => {});
+    showToast('Message copied — paste it into a LinkedIn DM!', 'info');
+    setTimeout(() => window.open('https://www.linkedin.com/messaging/', '_blank'), 900);
+  }
+}
+
 // ─── Auth Modal ────────────────────────────────────────────────────────────────
 function openAuthModal(mode = 'signin') {
   const modal   = document.getElementById('authModal');
@@ -1324,8 +1478,8 @@ function openAuthModal(mode = 'signin') {
   if (!modal) return;
   if (titleEl) titleEl.textContent = mode === 'signup' ? 'Create your Peepd account' : 'Sign in to Peepd';
   if (descEl)  descEl.textContent  = mode === 'signup'
-    ? 'Sign up with LinkedIn or Facebook. We only request your public profile & connection count.'
-    : 'Connect with LinkedIn or Facebook to sign in. We only request your public profile & connection count.';
+    ? 'Sign up with LinkedIn. We only request your public profile & connection count.'
+    : 'Connect with LinkedIn to sign in. We only request your public profile & connection count.';
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1445,8 +1599,6 @@ async function initNavUserMenu() {
   const provider  = user.app_metadata?.provider || '';
   const providerIcon = provider === 'linkedin_oidc'
     ? '<i class="fab fa-linkedin" style="color:#0A66C2;font-size:0.85rem;"></i>'
-    : provider === 'facebook'
-    ? '<i class="fab fa-facebook" style="color:#1877F2;font-size:0.85rem;"></i>'
     : '<i class="fas fa-user" style="font-size:0.85rem;"></i>';
 
   // Ensure profile exists (create silently if first sign-in)
@@ -1472,6 +1624,7 @@ async function initNavUserMenu() {
         <a href="/my-profile" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
         <a href="/my-profile" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='/my-profile';"><i class="fas fa-pen"></i> Edit Profile</a>
         <a href="/write-review" class="nav__dropdown-item"><i class="fas fa-pen-to-square"></i> Write a Review</a>
+        <button class="nav__dropdown-item" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share My Score</button>
         <button class="nav__dropdown-item" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
         <div class="nav__dropdown-divider"></div>
         <button class="nav__dropdown-item nav__dropdown-item--danger" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
@@ -1811,8 +1964,6 @@ async function loadMyProfilePage() {
   const providerEl = g('mpAccountProvider');
   if (providerEl) providerEl.innerHTML = prov === 'linkedin_oidc'
     ? '<i class="fab fa-linkedin" style="color:#0A66C2;"></i> LinkedIn'
-    : prov === 'facebook'
-    ? '<i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook'
     : '<i class="fas fa-user"></i> Social Account';
   set('mpAccountEmail', session.user.email || '');
 
@@ -2093,7 +2244,7 @@ function initSocialGate() {
     _getAuthSession().then(session => {
       if (session) {
         const provider = session.user?.app_metadata?.provider;
-        if (provider === 'facebook' || provider === 'linkedin_oidc') {
+        if (provider === 'linkedin_oidc') {
           // Already OAuth-authenticated — auto-approve, gate stays hidden
           const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
           const handle      = session.user?.user_metadata?.full_name
@@ -2145,8 +2296,12 @@ function showConnectedBanner(session) {
   }
 }
 
-// Redirect to Facebook / LinkedIn OAuth via Supabase
+// Redirect to LinkedIn OAuth via Supabase
 async function connectWithOAuth(provider) {
+  if (provider !== 'linkedin_oidc') {
+    showToast('LinkedIn is the only sign-in option right now.', 'info');
+    return;
+  }
   if (!_signInWithOAuthProvider) {
     showToast('Social sign-in is not configured yet. See setup instructions.', 'error');
     return;
@@ -2177,7 +2332,7 @@ async function handleSocialOAuthCallback(session) {
     sessionStorage.setItem('peepd_li_token', providerToken);
   }
 
-  const platformNames = { facebook: 'Facebook', linkedin_oidc: 'LinkedIn' };
+  const platformNames = { linkedin_oidc: 'LinkedIn' };
   const pName         = platformNames[provider] || provider;
 
   const loadingText = document.getElementById('sgLoadingText');
@@ -2187,7 +2342,6 @@ async function handleSocialOAuthCallback(session) {
 
   let count = null;
   if (providerToken) {
-    if (provider === 'facebook')      count = await fetchFacebookFriendCount(providerToken);
     if (provider === 'linkedin_oidc') count = await fetchLinkedInConnectionCount(providerToken);
   }
 
@@ -2217,7 +2371,7 @@ async function handleSocialOAuthCallback(session) {
     }
   } else {
     // Count API not accessible (standard for OIDC scopes) — trust the OAuth sign-in itself.
-    // Completing OAuth with LinkedIn/Facebook proves a real, authenticated account.
+    // Completing OAuth with LinkedIn proves a real, authenticated account.
     const platform    = provider === 'linkedin_oidc' ? 'linkedin' : provider;
     const sessionData = { platform, handle, follower_count: 0, auth_verified: true, auth_user_id: session.user.id, verified_at: new Date().toISOString() };
     saveSocialSession(sessionData);
@@ -2230,17 +2384,6 @@ async function handleSocialOAuthCallback(session) {
     showConnectedBanner(sessionData);
     showToast(`${pName} account verified!`, 'success');
   }
-}
-
-async function fetchFacebookFriendCount(accessToken) {
-  try {
-    const resp = await fetch(
-      `https://graph.facebook.com/me?fields=id,name,friends.summary(true)&access_token=${encodeURIComponent(accessToken)}`
-    );
-    const data = await resp.json();
-    const total = data?.friends?.summary?.total_count;
-    return (typeof total === 'number') ? total : null;
-  } catch { return null; }
 }
 
 async function fetchLinkedInConnectionCount(accessToken) {

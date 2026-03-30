@@ -6,7 +6,7 @@
   <title>Cookie Policy — Peepd</title>
   <meta name="description" content="Peepd Cookie Policy — how we use cookies and local storage on the Platform." />
   <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -123,7 +123,7 @@
           <tr>
             <td><code>sb-&lt;ref&gt;-auth-token</code></td>
             <td>Local Storage</td>
-            <td>Stores your Supabase authentication session token after signing in with LinkedIn or Facebook.</td>
+            <td>Stores your Supabase authentication session token after signing in with LinkedIn.</td>
             <td>Until sign-out or token expiry (typically 1 hour, auto-refreshed)</td>
           </tr>
           <tr>
@@ -163,11 +163,6 @@
             <td>LinkedIn</td>
             <td>Authentication and session management during LinkedIn OAuth sign-in. LinkedIn may also set analytics cookies on pages that embed LinkedIn functionality.</td>
             <td><a href="https://www.linkedin.com/legal/cookie-policy" target="_blank" rel="noopener">linkedin.com/legal/cookie-policy</a></td>
-          </tr>
-          <tr>
-            <td>Facebook / Meta</td>
-            <td>Authentication and session management during Facebook OAuth sign-in. Meta may also set the <code>_fbp</code> tracking pixel cookie.</td>
-            <td><a href="https://www.facebook.com/policies/cookies/" target="_blank" rel="noopener">facebook.com/policies/cookies</a></td>
           </tr>
           <tr>
             <td>Didit</td>
@@ -270,19 +265,16 @@
         <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
       </div>
       <h2 id="authModalTitle" style="text-align:center; font-size:1.35rem; font-weight:800; margin-bottom:6px;">Sign In to Peepd</h2>
-      <p id="authModalDesc" style="text-align:center; font-size:0.875rem; color:var(--text-muted); margin-bottom:28px;">Choose a platform to continue.</p>
+      <p id="authModalDesc" style="text-align:center; font-size:0.875rem; color:var(--text-muted); margin-bottom:28px;">Continue with LinkedIn to sign in.</p>
       <div class="auth-modal__platforms">
         <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')">
           <i class="fab fa-linkedin"></i> Continue with LinkedIn
-        </button>
-        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')">
-          <i class="fab fa-facebook"></i> Continue with Facebook
         </button>
       </div>
       <p class="auth-modal__note">By continuing you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>.</p>
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>

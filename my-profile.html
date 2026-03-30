@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile — Peepd</title>
   <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -52,7 +52,7 @@
   <div id="myProfileNoSession" style="display:none; min-height:60vh; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:60px 24px; text-align:center;">
     <i class="fas fa-user-lock" style="font-size:3rem; color:var(--border-accent); margin-bottom:8px;"></i>
     <h2>Sign in to view your profile</h2>
-    <p style="color:var(--text-muted); max-width:360px; line-height:1.7;">Connect with LinkedIn or Facebook to see and manage your Peepd profile, dispute reviews, and track your Peepd Score.</p>
+    <p style="color:var(--text-muted); max-width:360px; line-height:1.7;">Connect with LinkedIn to see and manage your Peepd profile, dispute reviews, and track your Peepd Score.</p>
     <button class="btn btn--primary btn--lg" onclick="openAuthModal('signin')"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
   </div>
 
@@ -79,7 +79,8 @@
             <p class="profile-hero__summary" id="mpBio">No bio yet. Click Edit Profile to add one.</p>
             <div class="profile-hero__actions">
               <button class="btn btn--primary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
-              <button class="btn btn--secondary" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share Profile</button>
+              <button class="btn btn--secondary" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Your Score</button>
+              <button class="btn btn--ghost" onclick="shareProfileUrl()"><i class="fas fa-link"></i> Copy Profile Link</button>
               <button class="btn btn--ghost" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
             </div>
           </div>
@@ -208,6 +209,9 @@
             <h3><i class="fas fa-link" style="color:var(--cyan);"></i> Linked Account</h3>
             <div class="account-card__item" id="mpAccountProvider">—</div>
             <div class="account-card__item"><i class="fas fa-envelope" style="color:var(--text-muted);"></i> <span id="mpAccountEmail">—</span></div>
+            <button class="account-card__btn account-card__btn--primary" onclick="openShareScoreModal()">
+              <i class="fas fa-sparkles"></i> Share Your Score
+            </button>
             <button class="account-card__btn account-card__btn--secondary" onclick="shareProfileUrl()">
               <i class="fas fa-share-nodes"></i> Share My Profile
             </button>
@@ -222,6 +226,14 @@
             <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">More reviews = higher Peepd Score. Ask colleagues, friends, and peers who know you.</p>
             <button class="btn btn--primary" style="width:100%;" onclick="openRequestReviewModal()">
               <i class="fas fa-share-nodes"></i> Request Reviews
+            </button>
+          </div>
+
+          <div class="card share-score-card" style="padding:24px; margin-bottom:16px;">
+            <h3 class="sidebar-heading" style="margin-bottom:10px;"><i class="fas fa-sparkles" style="color:var(--cyan-light);"></i> Share Your Peep’d Score</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">Send a polished message to bosses, recruiters, dates, or clients with your live score and profile link.</p>
+            <button class="btn btn--secondary" style="width:100%;" onclick="openShareScoreModal()">
+              <i class="fas fa-paper-plane"></i> Open Share Composer
             </button>
           </div>
 
@@ -406,16 +418,83 @@
     </div>
   </div>
 
+  <!-- ── Share Score Modal ──────────────────────────────────── -->
+  <div class="modal-overlay" id="shareScoreModal" onclick="closeShareScoreModal(event)">
+    <div class="modal score-share-modal">
+      <button class="auth-modal__close" onclick="closeShareScoreModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="rr-modal__icon"><i class="fas fa-sparkles"></i></div>
+      <h2>Share Your Peep’d Score</h2>
+      <p>Pick who you're sending it to, then copy or send a polished message with your live score and public profile.</p>
+
+      <div class="score-share__summary">
+        <div class="score-share__stat">
+          <span class="score-share__label">Score</span>
+          <strong id="ssScoreValue">—</strong>
+        </div>
+        <div class="score-share__stat">
+          <span class="score-share__label">Tier</span>
+          <strong id="ssTierValue">—</strong>
+        </div>
+        <div class="score-share__stat">
+          <span class="score-share__label">Reviews</span>
+          <strong id="ssReviewValue">—</strong>
+        </div>
+      </div>
+
+      <div class="score-share__audiences">
+        <button class="score-audience-btn active" data-audience="boss" onclick="selectScoreAudience('boss')">
+          <i class="fas fa-briefcase"></i><span>Boss</span>
+        </button>
+        <button class="score-audience-btn" data-audience="recruiter" onclick="selectScoreAudience('recruiter')">
+          <i class="fas fa-magnifying-glass"></i><span>Recruiter</span>
+        </button>
+        <button class="score-audience-btn" data-audience="date" onclick="selectScoreAudience('date')">
+          <i class="fas fa-heart"></i><span>Date</span>
+        </button>
+        <button class="score-audience-btn" data-audience="client" onclick="selectScoreAudience('client')">
+          <i class="fas fa-handshake"></i><span>Client</span>
+        </button>
+      </div>
+
+      <div class="score-share__context" id="ssAudienceTitle">Sharing with a boss</div>
+      <div class="rr-url-box">
+        <input type="text" id="ssProfileUrl" class="rr-url-input" readonly placeholder="Loading your link…" />
+        <button class="rr-copy-btn" onclick="copyScoreShareLink()" id="ssLinkCopyBtn" title="Copy profile link">
+          <i class="fas fa-link"></i>
+        </button>
+      </div>
+
+      <label class="ep-label" for="ssMessagePreview" style="text-align:left; display:block; margin-bottom:8px;">Message Preview</label>
+      <textarea id="ssMessagePreview" class="ep-textarea score-share__preview" readonly></textarea>
+
+      <div class="rr-channels score-share__channels">
+        <button class="rr-channel-btn rr-channel-btn--email" onclick="shareScoreVia('copy')">
+          <i class="fas fa-copy"></i><span>Copy Message</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--sms" onclick="shareScoreVia('sms')">
+          <i class="fas fa-comment-sms"></i><span>Text / iMessage</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--email" onclick="shareScoreVia('email')">
+          <i class="fas fa-envelope"></i><span>Email</span>
+        </button>
+        <button class="rr-channel-btn rr-channel-btn--linkedin" onclick="shareScoreVia('linkedin')">
+          <i class="fab fa-linkedin"></i><span>LinkedIn</span>
+        </button>
+      </div>
+
+      <p class="rr-modal__note"><i class="fas fa-shield-halved"></i> Your message always uses your live public profile URL and current Peep’d score.</p>
+    </div>
+  </div>
+
   <!-- ── Auth Modal ──────────────────────────────────────────── -->
   <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
     <div class="modal auth-modal">
       <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
       <div class="auth-modal__logo"><img src="img/logo-light.svg" alt="Peepd" /></div>
       <h2 id="authModalTitle">Sign in to Peepd</h2>
-      <p id="authModalDesc">Connect with LinkedIn or Facebook to sign in.</p>
+      <p id="authModalDesc">Connect with LinkedIn to sign in.</p>
       <div class="auth-modal__platforms">
         <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')"><i class="fab fa-linkedin"></i><span>Continue with LinkedIn</span></button>
-        <button class="social-platform-btn social-platform-btn--facebook" onclick="connectWithOAuth('facebook')"><i class="fab fa-facebook"></i><span>Continue with Facebook</span></button>
       </div>
       <p class="auth-modal__note"><i class="fas fa-lock"></i> Your data is never shared. By continuing you agree to our <a href="/privacy-policy">Privacy Policy</a>.</p>
     </div>
@@ -466,6 +545,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>
