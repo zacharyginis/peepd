@@ -1306,6 +1306,21 @@ function requestReviewVia(channel) {
   const subject  = encodeURIComponent(`Would you review ${first} on Peepd?`);
   const body     = encodeURIComponent(`Hey,\n\nI joined Peepd — a platform where peers leave each other honest reviews. I'd really value your opinion of me.\n\nCould you take 2 minutes?\n\n${url}\n\nThanks!`);
 
+  if (channel === 'copy') {
+    navigator.clipboard.writeText(msg).then(() => {
+      showToast('Review request copied!', 'success');
+    }).catch(() => {
+      try {
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      } catch {}
+      showToast('Copy failed — select the message manually.', 'error');
+    });
+    return;
+  }
+
   if (channel === 'sms') {
     window.location.href = `sms:?&body=${encodeURIComponent(msg)}`;
   } else if (channel === 'email') {
@@ -1314,10 +1329,6 @@ function requestReviewVia(channel) {
     navigator.clipboard.writeText(msg).catch(() => {});
     showToast('Message copied — paste it into a LinkedIn DM!', 'info');
     setTimeout(() => window.open('https://www.linkedin.com/messaging/', '_blank'), 900);
-  } else if (channel === 'facebook') {
-    navigator.clipboard.writeText(msg).catch(() => {});
-    showToast('Message copied — paste it into Messenger!', 'info');
-    setTimeout(() => window.open('https://www.facebook.com/messages/', '_blank'), 900);
   }
 }
 
@@ -1937,16 +1948,8 @@ async function loadMyProfilePage() {
   set('stAccuracy',    profile.accuracy_rate ? `${Math.round(profile.accuracy_rate)}%` : '—');
   set('stScore',       profile.peep_score || 0);
   set('stTier',        profile.tier || 'Phantom');
-  set('sbReviewCount', profile.review_count || 0);
-  set('sbAccuracy',    profile.accuracy_rate ? `${Math.round(profile.accuracy_rate)}%` : '—');
-  set('sbScore',       profile.peep_score || 0);
-  set('sbTier',        profile.tier || 'Phantom');
 
-  // Tab count
-  const tabCount = document.querySelector('[data-tab="reviews"] .tab-count');
-  if (tabCount) tabCount.textContent = profile.review_count || 0;
-
-  // About tab
+  // Profile details
   set('abName',        profile.full_name);
   set('abTitle',       profile.title    || '—');
   set('abCompany',     profile.company  || '—');
@@ -1982,11 +1985,6 @@ async function loadMyProfilePage() {
   content.style.display = '';
   if (body) body.style.display = '';
 
-  // Animate bars
-  initProfileTabs();
-  initCategoryBars();
-  initAccuracyMeters();
-
   // Load reviews
   if (_getReviewsForProfile) {
     try {
@@ -2002,10 +2000,14 @@ function renderMyReviews(reviews) {
 
   if (!reviews || reviews.length === 0) {
     list.innerHTML = `
-      <div style="text-align:center;padding:48px 24px;color:var(--text-muted);">
-        <i class="fas fa-star" style="font-size:2.5rem;margin-bottom:16px;display:block;opacity:0.25;"></i>
-        <p style="margin-bottom:20px;">No reviews yet. Share your profile and invite people who know you.</p>
-        <button class="btn btn--primary" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
+      <div class="my-profile-empty-state">
+        <i class="fas fa-star"></i>
+        <h4>No reviews yet</h4>
+        <p>Start collecting signal by inviting people who genuinely know you.</p>
+        <div class="my-profile-empty-state__actions">
+          <button class="btn btn--primary" onclick="openRequestReviewModal()"><i class="fas fa-paper-plane"></i> Ask for Reviews</button>
+          <button class="btn btn--ghost" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Your Score</button>
+        </div>
       </div>`;
     return;
   }

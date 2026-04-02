@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile — Peepd</title>
   <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
-  <link rel="stylesheet" href="css/style.css?v=5" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -57,18 +57,18 @@
   </div>
 
   <!-- ── Profile Hero (shown after load) ───────────────────── -->
-  <section class="profile-hero" id="myProfileContent" style="display:none;">
+  <section class="profile-hero my-profile-clean-hero" id="myProfileContent" style="display:none;">
     <div class="container">
-      <div class="profile-hero__layout">
-        <div class="profile-hero__left">
+      <div class="my-profile-clean-hero__grid">
+        <div class="my-profile-clean-hero__identity">
           <div class="avatar avatar-1 avatar-xl" id="mpAvatar"><span id="mpInitials">?</span></div>
-          <div class="profile-hero__identity">
+          <div class="my-profile-clean-hero__copy">
             <div class="profile-hero__badges">
               <span class="badge badge--verified"><i class="fas fa-circle-check"></i> Peepd Member</span>
               <span id="mpTierBadge" class="badge" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.15);">— Phantom</span>
             </div>
             <h1 class="profile-hero__name" id="mpName">Your Name</h1>
-            <div class="profile-hero__meta">
+            <div class="profile-hero__meta my-profile-clean-hero__meta">
               <span><i class="fas fa-briefcase"></i> <span id="mpTitle">—</span></span>
               <span><i class="fas fa-building"></i> <span id="mpCompany">—</span></span>
               <span><i class="fas fa-map-pin"></i> <span id="mpLocation">—</span></span>
@@ -77,15 +77,16 @@
               <span id="mpWebsiteSpan" style="display:none;"><i class="fas fa-globe"></i> <a id="mpWebsite" href="#" target="_blank" rel="noopener" style="color:var(--purple);"></a></span>
             </div>
             <p class="profile-hero__summary" id="mpBio">No bio yet. Click Edit Profile to add one.</p>
-            <div class="profile-hero__actions">
+            <div class="profile-hero__actions my-profile-clean-hero__actions">
               <button class="btn btn--primary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
-              <button class="btn btn--secondary" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Your Score</button>
-              <button class="btn btn--ghost" onclick="shareProfileUrl()"><i class="fas fa-link"></i> Copy Profile Link</button>
-              <button class="btn btn--ghost" onclick="doSignOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+              <button class="btn btn--secondary" onclick="openRequestReviewModal()"><i class="fas fa-paper-plane"></i> Ask for Reviews</button>
+              <button class="btn btn--ghost" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Score</button>
+              <button class="btn btn--ghost" onclick="shareProfileUrl()"><i class="fas fa-link"></i> Copy Link</button>
             </div>
           </div>
         </div>
-        <div class="profile-hero__right">
+
+        <div class="card my-profile-score-panel">
           <div class="score-gauge-wrapper" id="mpScoreGauge">
             <svg class="score-gauge__svg" viewBox="0 0 200 200" width="200" height="200">
               <defs>
@@ -107,146 +108,102 @@
           <div class="score-trend-badge">
             <i class="fas fa-chart-line"></i> Your live peer score
           </div>
+          <div class="my-profile-stat-grid">
+            <div class="stat-card"><div class="stat-card__value" id="stReviewCount">0</div><div class="stat-card__label">Reviews</div></div>
+            <div class="stat-card"><div class="stat-card__value" id="stAccuracy">—</div><div class="stat-card__label">Accuracy</div></div>
+            <div class="stat-card"><div class="stat-card__value" id="stScore">0</div><div class="stat-card__label">Score</div></div>
+            <div class="stat-card"><div class="stat-card__value" id="stTier">—</div><div class="stat-card__label">Tier</div></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ── Profile Body ───────────────────────────────────────── -->
-  <div class="container" id="myProfileBody" style="display:none; padding-top:32px; padding-bottom:80px;">
-    <div class="profile-body">
-
-      <!-- Tabs -->
-      <div class="profile-tabs-nav">
-        <button class="profile-tab active" data-tab="reviews">
-          <i class="fas fa-star"></i> Reviews <span class="tab-count">0</span>
-        </button>
-        <button class="profile-tab" data-tab="about">
-          <i class="fas fa-user"></i> About
-        </button>
-        <button class="profile-tab" data-tab="stats">
-          <i class="fas fa-chart-bar"></i> Stats
-        </button>
-      </div>
-
-      <div class="profile-layout">
-
-        <!-- ── Main ──────────────────────────────────────────── -->
-        <div class="profile-main">
-
-          <!-- REVIEWS TAB -->
-          <div class="profile-tab-panel active" id="tab-reviews">
-            <div class="reviews-header">
-              <h3 style="font-family:'Sora',sans-serif; font-size:1rem; font-weight:700;">Reviews About You</h3>
-              <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="recent">Recent</button>
-              </div>
-            </div>
-            <div id="myReviewsList">
-              <!-- Reviews rendered by JS -->
-            </div>
+  <div class="container" id="myProfileBody" style="display:none; padding-top:24px; padding-bottom:80px;">
+    <div class="my-profile-clean-shell">
+      <section class="card my-profile-clean-section">
+        <div class="my-profile-clean-section__header">
+          <div>
+            <h3>Profile Details</h3>
+            <p>What people see when they open your public Peepd profile.</p>
           </div>
-
-          <!-- ABOUT TAB -->
-          <div class="profile-tab-panel" id="tab-about">
-            <div class="about-grid">
-              <div class="about-field"><label>Full Name</label><p id="abName">—</p></div>
-              <div class="about-field"><label>Title</label><p id="abTitle">—</p></div>
-              <div class="about-field"><label>Company</label><p id="abCompany">—</p></div>
-              <div class="about-field"><label>Location</label><p id="abLocation">—</p></div>
-              <div class="about-field"><label>Industry</label><p id="abIndustry">—</p></div>
-              <div class="about-field"><label>Website</label><p id="abWebsite">—</p></div>
-              <div class="about-field"><label>On Peepd Since</label><p id="abJoined">—</p></div>
-              <div class="about-field"><label>Reviews Received</label><p id="abReviewCount">—</p></div>
-            </div>
-            <div style="margin-top:20px;">
-              <button class="btn btn--secondary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile Info</button>
-            </div>
-          </div>
-
-          <!-- STATS TAB -->
-          <div class="profile-tab-panel" id="tab-stats">
-            <div class="stats-grid">
-              <div class="stat-card"><div class="stat-card__value" id="stReviewCount">0</div><div class="stat-card__label">Total Reviews</div></div>
-              <div class="stat-card"><div class="stat-card__value" id="stAccuracy">—</div><div class="stat-card__label">Avg Accuracy</div></div>
-              <div class="stat-card"><div class="stat-card__value" id="stScore">0</div><div class="stat-card__label">Peepd Score</div></div>
-              <div class="stat-card"><div class="stat-card__value" id="stTier">—</div><div class="stat-card__label">Tier</div></div>
-            </div>
-          </div>
-
+          <button class="btn btn--secondary btn--sm" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit</button>
         </div>
+        <div class="my-profile-detail-grid">
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Full Name</span><strong id="abName">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Title</span><strong id="abTitle">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Company</span><strong id="abCompany">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Location</span><strong id="abLocation">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Industry</span><strong id="abIndustry">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Website</span><div id="abWebsite">—</div></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">On Peepd Since</span><strong id="abJoined">—</strong></div>
+          <div class="my-profile-detail-card"><span class="my-profile-detail-card__label">Reviews Received</span><strong id="abReviewCount">—</strong></div>
+        </div>
+      </section>
 
-        <!-- ── Sidebar ──────────────────────────────────────── -->
-        <aside class="profile-sidebar">
-
-          <!-- Score Breakdown -->
-          <div class="card" style="padding:24px; margin-bottom:16px;">
-            <h3 class="sidebar-heading"><i class="fas fa-sliders"></i> Score Breakdown</h3>
-            <div class="category-bars">
-              <div class="category-bar"><div class="category-bar__label"><span>Work Ethic</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--purple" data-width="0" style="width:0%"></div></div></div>
-              <div class="category-bar"><div class="category-bar__label"><span>Reliability</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--cyan" data-width="0" style="width:0%"></div></div></div>
-              <div class="category-bar"><div class="category-bar__label"><span>Honesty</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--green" data-width="0" style="width:0%"></div></div></div>
-              <div class="category-bar"><div class="category-bar__label"><span>Character</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--purple" data-width="0" style="width:0%"></div></div></div>
-              <div class="category-bar"><div class="category-bar__label"><span>Intelligence</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--cyan" data-width="0" style="width:0%"></div></div></div>
-              <div class="category-bar"><div class="category-bar__label"><span>Social Skills</span><span class="category-bar__val">—</span></div><div class="category-bar__track"><div class="category-bar__fill category-bar__fill--green" data-width="0" style="width:0%"></div></div></div>
+      <div class="my-profile-clean-split">
+        <section class="card my-profile-clean-section">
+          <div class="my-profile-clean-section__header">
+            <div>
+              <h3>Next Best Actions</h3>
+              <p>Everything you need to grow or share your reputation.</p>
             </div>
           </div>
+          <div class="my-profile-action-grid">
+            <button class="my-profile-action-card" onclick="openRequestReviewModal()">
+              <i class="fas fa-paper-plane"></i>
+              <span class="my-profile-action-card__title">Request Reviews</span>
+              <span class="my-profile-action-card__desc">Invite colleagues, friends, and peers who know you best.</span>
+            </button>
+            <button class="my-profile-action-card" onclick="openShareScoreModal()">
+              <i class="fas fa-sparkles"></i>
+              <span class="my-profile-action-card__title">Share Your Score</span>
+              <span class="my-profile-action-card__desc">Send your live Peep’d score to bosses, dates, recruiters, or clients.</span>
+            </button>
+            <button class="my-profile-action-card" onclick="shareProfileUrl()">
+              <i class="fas fa-link"></i>
+              <span class="my-profile-action-card__title">Copy Profile Link</span>
+              <span class="my-profile-action-card__desc">Grab your clean public URL and paste it anywhere.</span>
+            </button>
+          </div>
+        </section>
 
-          <!-- Quick Stats -->
-          <div class="card" style="padding:24px; margin-bottom:16px;">
-            <h3 class="sidebar-heading"><i class="fas fa-bolt"></i> Quick Stats</h3>
-            <div class="sidebar-stats">
-              <div class="sidebar-stat"><span class="sidebar-stat__label">Total Reviews</span><span class="sidebar-stat__val" id="sbReviewCount">—</span></div>
-              <div class="sidebar-stat"><span class="sidebar-stat__label">Accuracy Rate</span><span class="sidebar-stat__val text-green" id="sbAccuracy">—</span></div>
-              <div class="sidebar-stat"><span class="sidebar-stat__label">Peepd Score</span><span class="sidebar-stat__val" id="sbScore">—</span></div>
-              <div class="sidebar-stat"><span class="sidebar-stat__label">Current Tier</span><span class="sidebar-stat__val" id="sbTier">—</span></div>
+        <section class="card my-profile-clean-section my-profile-clean-section--account">
+          <div class="my-profile-clean-section__header">
+            <div>
+              <h3>Account</h3>
+              <p>Your sign-in method and account actions.</p>
             </div>
           </div>
-
-          <!-- Linked Account -->
-          <div class="account-card">
-            <h3><i class="fas fa-link" style="color:var(--cyan);"></i> Linked Account</h3>
+          <div class="account-card account-card--inline">
             <div class="account-card__item" id="mpAccountProvider">—</div>
             <div class="account-card__item"><i class="fas fa-envelope" style="color:var(--text-muted);"></i> <span id="mpAccountEmail">—</span></div>
-            <button class="account-card__btn account-card__btn--primary" onclick="openShareScoreModal()">
-              <i class="fas fa-sparkles"></i> Share Your Score
-            </button>
-            <button class="account-card__btn account-card__btn--secondary" onclick="shareProfileUrl()">
-              <i class="fas fa-share-nodes"></i> Share My Profile
+            <button class="account-card__btn account-card__btn--secondary" onclick="openEditProfileModal()">
+              <i class="fas fa-user-pen"></i> Edit Profile
             </button>
             <button class="account-card__btn account-card__btn--danger" onclick="doSignOut()">
               <i class="fas fa-arrow-right-from-bracket"></i> Sign Out
             </button>
           </div>
-
-          <!-- Request Reviews Card -->
-          <div class="card rr-sidebar-card" style="padding:24px; margin-bottom:16px;">
-            <h3 class="sidebar-heading" style="margin-bottom:10px;"><i class="fas fa-paper-plane" style="color:var(--purple-light);"></i> Get More Reviews</h3>
-            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">More reviews = higher Peepd Score. Ask colleagues, friends, and peers who know you.</p>
-            <button class="btn btn--primary" style="width:100%;" onclick="openRequestReviewModal()">
-              <i class="fas fa-share-nodes"></i> Request Reviews
-            </button>
-          </div>
-
-          <div class="card share-score-card" style="padding:24px; margin-bottom:16px;">
-            <h3 class="sidebar-heading" style="margin-bottom:10px;"><i class="fas fa-sparkles" style="color:var(--cyan-light);"></i> Share Your Peep’d Score</h3>
-            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">Send a polished message to bosses, recruiters, dates, or clients with your live score and profile link.</p>
-            <button class="btn btn--secondary" style="width:100%;" onclick="openShareScoreModal()">
-              <i class="fas fa-paper-plane"></i> Open Share Composer
-            </button>
-          </div>
-
-          <!-- Self-Review Lockout -->
-          <div class="lockout-card">
-            <div class="lockout-card__icon"><i class="fas fa-lock"></i></div>
-            <h4>Self-Review Protected</h4>
-            <p>You cannot write a review on your own profile. All reviews are submitted exclusively by other people who know you.</p>
-            <div class="lockout-card__badge"><i class="fas fa-shield-halved"></i> Self-reviews blocked at DB level</div>
-          </div>
-
-        </aside>
+        </section>
       </div>
+
+      <section class="card my-profile-clean-section my-profile-clean-section--reviews">
+        <div class="my-profile-clean-section__header my-profile-clean-section__header--reviews">
+          <div>
+            <h3>Reviews About You</h3>
+            <p>Your incoming peer feedback appears here. Dispute anything inaccurate directly from a review card.</p>
+          </div>
+          <div class="my-profile-clean-inline-actions">
+            <button class="btn btn--secondary btn--sm" onclick="openRequestReviewModal()"><i class="fas fa-paper-plane"></i> Ask for Reviews</button>
+            <button class="btn btn--ghost btn--sm" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Score</button>
+          </div>
+        </div>
+        <div id="myReviewsList">
+          <!-- Reviews rendered by JS -->
+        </div>
+      </section>
     </div>
   </div>
 
@@ -409,8 +366,8 @@
         <button class="rr-channel-btn rr-channel-btn--linkedin" onclick="requestReviewVia('linkedin')">
           <i class="fab fa-linkedin"></i><span>LinkedIn</span>
         </button>
-        <button class="rr-channel-btn rr-channel-btn--facebook" onclick="requestReviewVia('facebook')">
-          <i class="fab fa-facebook-messenger"></i><span>Messenger</span>
+        <button class="rr-channel-btn rr-channel-btn--email" onclick="requestReviewVia('copy')">
+          <i class="fas fa-copy"></i><span>Copy Message</span>
         </button>
       </div>
 
@@ -545,6 +502,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=6"></script>
+  <script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>
