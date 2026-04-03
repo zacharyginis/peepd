@@ -17,7 +17,7 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _signInWithOAuthProvider, _getAuthSession,
     _createDiditSession, _verifyDiditSession,
     _fetchLinkedInRecommendations,
-    _saveWaitlistEntry,
+    _saveWaitlistEntry, _saveJobApplication,
     _signOut, _getOrCreateMyProfile, _updateMyProfile, _submitReviewDispute, _sendReviewEmails;
 
 async function loadSupabase() {
@@ -52,6 +52,7 @@ async function loadSupabase() {
     _verifyDiditSession           = mod.verifyDiditSession;
     _fetchLinkedInRecommendations = mod.fetchLinkedInRecommendations;
     _saveWaitlistEntry            = mod.saveWaitlistEntry;
+    _saveJobApplication           = mod.saveJobApplication;
     _signOut                      = mod.signOut;
     _getOrCreateMyProfile         = mod.getOrCreateMyProfile;
     _updateMyProfile              = mod.updateMyProfile;
@@ -105,6 +106,7 @@ const RESERVED_PROFILE_ROUTES = new Set([
   'cookies',
   'my-profile',
   'how-it-works',
+  'careers',
   'index.html',
   'profile.html',
   'write-review.html',
@@ -113,6 +115,7 @@ const RESERVED_PROFILE_ROUTES = new Set([
   'cookie-policy.html',
   'my-profile.html',
   'how-it-works.html',
+  'careers.html',
 ]);
 
 function normalizeProfileSlug(value) {
@@ -1479,6 +1482,7 @@ window.openRequestReviewModal    = openRequestReviewModal;
 window.closeRequestReviewModal   = closeRequestReviewModal;
 window.copyReviewLink            = copyReviewLink;
 window.requestReviewVia          = requestReviewVia;
+window.submitJobApplication      = submitJobApplication;
 
 // ─── Request Reviews Modal ─────────────────────────────────────────────────────
 function openRequestReviewModal() {
@@ -1715,6 +1719,66 @@ function closeAuthModal(e) {
   if (!modal) return;
   modal.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ─── Job Application Form (careers.html) ──────────────────────────────────────
+async function submitJobApplication(e) {
+  if (e) e.preventDefault();
+  const name      = document.getElementById('jaName')?.value.trim();
+  const email     = document.getElementById('jaEmail')?.value.trim();
+  const phone     = document.getElementById('jaPhone')?.value.trim();
+  const location  = document.getElementById('jaLocation')?.value.trim();
+  const linkedin  = document.getElementById('jaLinkedin')?.value.trim();
+  const portfolio = document.getElementById('jaPortfolio')?.value.trim();
+  const whyPeepd  = document.getElementById('jaWhyPeepd')?.value.trim();
+  const experience = document.getElementById('jaExperience')?.value.trim();
+
+  const errEl  = document.getElementById('jaError');
+  const btn    = document.getElementById('jaSubmitBtn');
+
+  function showErr(msg) {
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  }
+
+  if (!name || !email || !linkedin || !whyPeepd) {
+    showErr('Please fill in all required fields.');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showErr('Please enter a valid email address.');
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…'; }
+
+  const application = {
+    position:      'Founding CMO',
+    full_name:     name,
+    email,
+    phone:         phone || null,
+    linkedin_url:  linkedin || null,
+    portfolio_url: portfolio || null,
+    location:      location || null,
+    why_peepd:     whyPeepd || null,
+    experience:    experience || null,
+  };
+
+  try {
+    if (_saveJobApplication) {
+      await _saveJobApplication(application);
+    }
+    // Show success state
+    const formSection = document.getElementById('applicationFormSection');
+    const successEl   = document.getElementById('applicationSuccess');
+    if (formSection) formSection.style.display = 'none';
+    if (successEl)   successEl.style.display   = '';
+    showToast('Application submitted!', 'success');
+  } catch (err) {
+    const dup = err?.message?.includes('duplicate') || err?.message?.includes('unique');
+    showErr(dup ? 'Looks like you have already applied!' : 'Something went wrong. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application'; }
+  }
 }
 
 // ─── Waitlist Modal ────────────────────────────────────────────────────────────

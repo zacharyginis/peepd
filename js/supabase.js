@@ -467,6 +467,20 @@ export function sendReviewEmails({ reviewerEmail, reviewerName, reviewedName, re
 }
 
 /**
+ * Save a job application to the job_applications table.
+ * @param {{ position: string, full_name: string, email: string, phone?: string, linkedin_url?: string, portfolio_url?: string, location?: string, why_peepd?: string, experience?: string }} application
+ */
+export async function saveJobApplication(application) {
+  const { data, error } = await supabase
+    .from('job_applications')
+    .insert([application])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
  * @param {string} reviewId
  * @param {'false_info'|'mistaken_identity'|'harassment'|'spam'|'privacy'|'other'} reason
  * @param {string} [details]

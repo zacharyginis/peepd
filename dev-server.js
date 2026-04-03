@@ -15,6 +15,7 @@ const EXACT_ROUTES = new Map([
   ['/cookies', 'cookie-policy.html'],
   ['/my-profile', 'my-profile.html'],
   ['/how-it-works', 'how-it-works.html'],
+  ['/careers', 'careers.html'],
 ]);
 
 const MIME_TYPES = {

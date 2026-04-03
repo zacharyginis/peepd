@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Founding CMO — Careers at Peepd</title>
+  <meta name="description" content="Join Peepd as our founding Chief Marketing Officer. Equity-based compensation. Build the brand from zero." />
+  <link rel="icon" type="image/svg+xml" href="img/logo-light.svg" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "w3gphfxs9r");
+  </script>
+  <style>
+    /* ── Careers page-specific styles ──────────────────────── */
+    .careers-hero {
+      padding: 140px 0 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .careers-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(224,85,39,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(224,85,39,0.06) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 100%);
+    }
+    .careers-hero::after {
+      content: '';
+      position: absolute;
+      width: 560px; height: 560px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(224,85,39,0.16) 0%, transparent 70%);
+      top: -140px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .careers-hero__content { position: relative; z-index: 1; }
+    .careers-hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(224,85,39,0.12);
+      border: 1px solid rgba(224,85,39,0.3);
+      border-radius: 9999px;
+      padding: 6px 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--purple-mid);
+      margin-bottom: 24px;
+    }
+    .careers-hero h1 {
+      font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+    }
+    .careers-hero p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.75;
+    }
+
+    /* Meta pills */
+    .careers-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .careers-meta__pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .careers-meta__pill i { color: var(--purple); font-size: 0.85rem; }
+
+    /* Content body */
+    .careers-body {
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+    .careers-body h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 48px 0 16px;
+      color: var(--text-primary);
+    }
+    .careers-body h2:first-of-type { margin-top: 0; }
+    .careers-body p, .careers-body li {
+      font-size: 0.975rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+    .careers-body ul { padding-left: 20px; margin: 12px 0 24px; }
+    .careers-body li { margin-bottom: 8px; position: relative; list-style: none; padding-left: 22px; }
+    .careers-body li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      opacity: 0.7;
+    }
+
+    /* Equity callout */
+    .careers-equity-card {
+      background: linear-gradient(135deg, rgba(224,85,39,0.08), rgba(240,144,0,0.06));
+      border: 1px solid rgba(224,85,39,0.25);
+      border-radius: var(--radius-md);
+      padding: 28px 32px;
+      margin: 32px 0 48px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+    .careers-equity-card__icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: rgba(224,85,39,0.15);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--purple-mid); font-size: 1.2rem;
+    }
+    .careers-equity-card h4 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);
+    }
+    .careers-equity-card p {
+      font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin: 0;
+    }
+
+    /* Divider */
+    .careers-divider {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      margin: 48px 0;
+    }
+
+    /* Application form */
+    .careers-form-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      margin-top: 48px;
+    }
+    .careers-form-section h2 {
+      margin-top: 0;
+      margin-bottom: 6px;
+    }
+    .careers-form-section > p {
+      margin-bottom: 28px;
+    }
+    @media (max-width: 600px) {
+      .careers-form-section { padding: 28px 20px; }
+    }
+    .careers-form .ep-field-row { margin-bottom: 16px; }
+    .careers-form .ep-field { margin-bottom: 16px; }
+
+    /* Success / error state */
+    .careers-success {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .careers-success__icon {
+      width: 64px; height: 64px;
+      margin: 0 auto 16px;
+      background: rgba(16,185,129,0.12);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      color: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo">
+        <div class="nav__logo-icon">
+          <img src="img/logo-light.svg" alt="Peepd" style="width:34px;height:auto;display:block;" />
+        </div>
+        <span class="nav__logo-text">Peepd</span>
+      </a>
+      <div class="nav__search">
+        <i class="fas fa-search nav__search-icon"></i>
+        <input type="text" placeholder="Search for someone…" id="navSearch" autocomplete="off" />
+      </div>
+      <ul class="nav__links">
+        <li><a href="/" class="nav__link">Explore</a></li>
+        <li><a href="/how-it-works" class="nav__link">How It Works</a></li>
+        <li><a href="/write-review" class="nav__link">Write a Review</a></li>
+      </ul>
+      <div class="nav__actions" id="navActions">
+        <button class="btn btn--ghost btn--sm" onclick="openAuthModal('signin')">Sign In</button>
+        <button class="btn btn--primary btn--sm" onclick="openWaitlistModal()">Join Waitlist</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Hero ───────────────────────────────────────────────── -->
+  <section class="careers-hero">
+    <div class="container">
+      <div class="careers-hero__content">
+        <div class="careers-hero__badge"><i class="fas fa-briefcase"></i> We're Hiring</div>
+        <h1>Founding Chief Marketing Officer</h1>
+        <p>As our founding CMO, you will define how Peepd shows up — in every channel, every conversation, every campaign. You'll build the brand from the ground up and the team to execute it.</p>
+        <div class="careers-meta">
+          <span class="careers-meta__pill"><i class="fas fa-chart-pie"></i> Equity-Based Compensation</span>
+          <span class="careers-meta__pill"><i class="fas fa-globe"></i> Remote-Friendly</span>
+          <span class="careers-meta__pill"><i class="fas fa-rocket"></i> Founding Team</span>
+          <span class="careers-meta__pill"><i class="fas fa-clock"></i> Full-Time</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Job Details ────────────────────────────────────────── -->
+  <div class="careers-body">
+
+    <h2><i class="fas fa-list-check" style="color:var(--purple); margin-right:10px;"></i>What You'll Do</h2>
+    <ul>
+      <li>Architect and own Peepd's brand identity, voice, and positioning from zero</li>
+      <li>Drive user acquisition, activation, and retention strategies across all channels</li>
+      <li>Build and scale a world-class marketing team as the company grows</li>
+      <li>Lead content, community, PR, and growth functions under one cohesive vision</li>
+      <li>Work directly with the founders to shape product narrative and go-to-market</li>
+      <li>Establish KPIs, dashboards, and the data culture that makes marketing accountable</li>
+    </ul>
+
+    <h2><i class="fas fa-star" style="color:var(--purple); margin-right:10px;"></i>What We're Looking For</h2>
+    <ul>
+      <li>Proven track record building a brand from early-stage or zero — not just inheriting one</li>
+      <li>Deep fluency in digital marketing, growth loops, and community-led strategies</li>
+      <li>Strong storytelling instinct — you know how to make complex ideas feel simple and urgent</li>
+      <li>Experience scaling teams; you've hired marketers and know what great looks like</li>
+      <li>Comfort with ambiguity: you thrive when the playbook hasn't been written yet</li>
+      <li>Data-literate — you set targets, measure everything, and iterate relentlessly</li>
+      <li>Passion for reputation, transparency, and building trust online</li>
+    </ul>
+
+    <h2><i class="fas fa-handshake" style="color:var(--purple); margin-right:10px;"></i>Compensation</h2>
+    <div class="careers-equity-card">
+      <div class="careers-equity-card__icon"><i class="fas fa-chart-pie"></i></div>
+      <div>
+        <h4>Equity-Based Compensation</h4>
+        <p>This is a founding role. Compensation is structured as a meaningful equity stake in Peepd, reflecting the outsized impact you'll have on the company's trajectory. We're looking for a builder who wants to own what they create — not just execute a marketing plan. Specific equity details are discussed during the interview process.</p>
+      </div>
+    </div>
+
+    <h2><i class="fas fa-heart" style="color:var(--purple); margin-right:10px;"></i>Why Peepd?</h2>
+    <ul>
+      <li>You're not joining a team — you're building one. As a founding member, your fingerprints will be on everything</li>
+      <li>Peepd is tackling a massive, unsolved problem: making reputation transparent, honest, and owned by people — not platforms</li>
+      <li>Direct access to the founders and real influence over product, positioning, and company culture</li>
+      <li>Fully remote-friendly with async-first communication</li>
+      <li>Move fast, ship often, learn publicly — we build in the open</li>
+    </ul>
+
+    <hr class="careers-divider" />
+
+    <!-- ── Application Form ───────────────────────────────── -->
+    <div class="careers-form-section" id="applicationFormSection">
+      <h2 style="margin-bottom:6px;"><i class="fas fa-paper-plane" style="color:var(--purple); margin-right:10px;"></i>Apply Now</h2>
+      <p>Introduce yourself. We read every single application.</p>
+
+      <form id="jobApplicationForm" class="careers-form" onsubmit="submitJobApplication(event)" novalidate>
+        <div class="ep-field-row">
+          <div class="ep-field">
+            <label class="ep-label" for="jaName">Full Name <span style="color:var(--purple);">*</span></label>
+            <input type="text" id="jaName" class="social-input" placeholder="Jane Smith" autocomplete="name" required />
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="jaEmail">Email <span style="color:var(--purple);">*</span></label>
+            <input type="email" id="jaEmail" class="social-input" placeholder="jane@example.com" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="ep-field-row">
+          <div class="ep-field">
+            <label class="ep-label" for="jaPhone">Phone <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(optional)</span></label>
+            <input type="tel" id="jaPhone" class="social-input" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="jaLocation">Location</label>
+            <input type="text" id="jaLocation" class="social-input" placeholder="San Francisco, CA" />
+          </div>
+        </div>
+
+        <div class="ep-field-row">
+          <div class="ep-field">
+            <label class="ep-label" for="jaLinkedin">LinkedIn URL <span style="color:var(--purple);">*</span></label>
+            <input type="url" id="jaLinkedin" class="social-input" placeholder="https://linkedin.com/in/..." required />
+          </div>
+          <div class="ep-field">
+            <label class="ep-label" for="jaPortfolio">Portfolio / Website <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(optional)</span></label>
+            <input type="url" id="jaPortfolio" class="social-input" placeholder="https://yoursite.com" />
+          </div>
+        </div>
+
+        <div class="ep-field">
+          <label class="ep-label" for="jaWhyPeepd">Why Peepd? <span style="color:var(--purple);">*</span> <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(max 1000 chars)</span></label>
+          <textarea id="jaWhyPeepd" class="ep-textarea" placeholder="What excites you about Peepd and this role? What would you do in the first 90 days?" maxlength="1000" style="min-height:120px;" required></textarea>
+        </div>
+
+        <div class="ep-field">
+          <label class="ep-label" for="jaExperience">Relevant Experience <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(max 1000 chars)</span></label>
+          <textarea id="jaExperience" class="ep-textarea" placeholder="Tell us about your most relevant marketing experience — especially anything early-stage, brand-building, or growth-related." maxlength="1000" style="min-height:100px;"></textarea>
+        </div>
+
+        <div id="jaError" class="ep-error" style="display:none;"></div>
+
+        <button type="submit" class="btn btn--primary btn--lg" style="width:100%; margin-top:8px;" id="jaSubmitBtn">
+          <i class="fas fa-paper-plane"></i> Submit Application
+        </button>
+      </form>
+    </div>
+
+    <!-- ── Success state (hidden by default) ──────────────── -->
+    <div id="applicationSuccess" class="careers-form-section careers-success" style="display:none;">
+      <div class="careers-success__icon"><i class="fas fa-circle-check"></i></div>
+      <h2 style="margin-top:0; margin-bottom:10px;">Application Received 🎉</h2>
+      <p style="max-width:420px; margin:0 auto 24px; line-height:1.7;">Thank you for your interest in Peepd. We read every application and will be in touch if there's a fit.</p>
+      <a href="/" class="btn btn--secondary"><i class="fas fa-arrow-left"></i> Back to Peepd</a>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer style="background:var(--bg-surface); border-top:1px solid var(--border-subtle); padding:24px 0; text-align:center;">
+    <div class="container">
+      <p style="font-size:0.78rem; color:var(--text-muted);">© 2026 Peepd Inc. · <a href="/" style="color:var(--purple);">Home</a> · <a href="/write-review" style="color:var(--purple);">Write a Review</a> · <a href="/privacy-policy" style="color:var(--purple);">Privacy</a> · <a href="/terms" style="color:var(--purple);">Terms</a> · <a href="/careers" style="color:var(--purple);">Careers</a></p>
+    </div>
+  </footer>
+
+  <!-- ── Auth Modal ──────────────────────────────────────────── -->
+  <div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal auth-modal">
+      <button class="auth-modal__close" onclick="closeAuthModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="auth-modal__logo"><img src="img/logo-light.svg" alt="Peepd" /></div>
+      <h2 id="authModalTitle">Sign in to Peepd</h2>
+      <p id="authModalDesc">Connect with LinkedIn to sign in.</p>
+      <div class="auth-modal__platforms">
+        <button class="social-platform-btn social-platform-btn--linkedin" onclick="connectWithOAuth('linkedin_oidc')"><i class="fab fa-linkedin"></i><span>Continue with LinkedIn</span></button>
+      </div>
+      <p class="auth-modal__note"><i class="fas fa-lock"></i> Your data is never shared. By continuing you agree to our <a href="/privacy-policy">Privacy Policy</a>.</p>
+    </div>
+  </div>
+
+  <!-- ── Waitlist Modal ──────────────────────────────────────── -->
+  <div class="modal-overlay" id="waitlistModal" onclick="closeWaitlistModal(event)">
+    <div class="modal waitlist-modal">
+      <button class="auth-modal__close" onclick="closeWaitlistModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div id="wlStateForm">
+        <div class="waitlist-modal__header">
+          <div class="waitlist-modal__icon"><i class="fas fa-list-ul"></i></div>
+          <h2>Join the Waitlist</h2>
+          <p>Be among the first to get access when Peepd opens to the public.</p>
+        </div>
+        <form id="waitlistForm" novalidate>
+          <div class="wl-field-row">
+            <div class="wl-field"><label class="wl-label" for="wlName">Full Name <span class="wl-required">*</span></label><input type="text" id="wlName" class="social-input" placeholder="Jane Smith" /></div>
+            <div class="wl-field"><label class="wl-label" for="wlEmail">Email <span class="wl-required">*</span></label><input type="email" id="wlEmail" class="social-input" placeholder="jane@example.com" /></div>
+          </div>
+          <div class="wl-field-row">
+            <div class="wl-field"><label class="wl-label" for="wlLinkedin">LinkedIn URL</label><input type="url" id="wlLinkedin" class="social-input" placeholder="https://linkedin.com/in/..." /></div>
+            <div class="wl-field"><label class="wl-label" for="wlBirthdate">Date of Birth <span class="wl-required">*</span></label><input type="date" id="wlBirthdate" class="social-input" /></div>
+          </div>
+          <div class="wl-field">
+            <label class="wl-label" for="wlSource">How did you find us? <span class="wl-required">*</span></label>
+            <select id="wlSource" class="social-input">
+              <option value="">— Select one —</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="twitter_x">X / Twitter</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="google">Google Search</option>
+              <option value="friend">A friend told me</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div id="wlError" class="wl-error" style="display:none;"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%; margin-top:4px;" id="wlSubmitBtn"><i class="fas fa-paper-plane"></i> Request Access</button>
+        </form>
+      </div>
+      <div id="wlStateSuccess" style="display:none; text-align:center; padding:8px 0;">
+        <div class="waitlist-modal__success-icon"><i class="fas fa-circle-check"></i></div>
+        <h2 style="margin-bottom:10px;">You're on the list! 🎉</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">We'll email <strong id="wlSuccessEmail"></strong> when we open up.</p>
+        <button class="btn btn--secondary" style="width:100%;" onclick="closeWaitlistModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=7"></script>
+</body>
+</html>
