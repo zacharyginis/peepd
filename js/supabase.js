@@ -336,13 +336,10 @@ export async function fetchLinkedInRecommendations(accessToken) {
  * @param {{ full_name: string, email: string, linkedin_url?: string, birthdate?: string, referral_source: string }} entry
  */
 export async function saveWaitlistEntry(entry) {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('waitlist')
-    .insert([entry])
-    .select()
-    .single();
+    .insert([entry]);
   if (error) throw error;
-  return data;
 }
 
 /** Sign the current user out. */
@@ -471,13 +468,10 @@ export function sendReviewEmails({ reviewerEmail, reviewerName, reviewedName, re
  * @param {{ position: string, full_name: string, email: string, phone?: string, linkedin_url?: string, portfolio_url?: string, location?: string, why_peepd?: string, experience?: string }} application
  */
 export async function saveJobApplication(application) {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('job_applications')
-    .insert([application])
-    .select()
-    .single();
+    .insert([application]);
   if (error) throw error;
-  return data;
 }
 
 /**
