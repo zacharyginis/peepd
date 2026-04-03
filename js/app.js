@@ -69,9 +69,16 @@ async function loadSupabase() {
         }
         // Refresh the nav user menu on every page after sign-in
         initNavUserMenu().catch(() => {});
-        // On my-profile page, reload profile data once the session is ready
+        // On my-profile page, redirect to /{slug}
         if (document.getElementById('myProfileContent')) {
           loadMyProfilePage().catch(() => {});
+        }
+        // On profile page, check if this is now the user's own profile
+        if (document.body.classList.contains('profile-page') && window._publicProfileRecord) {
+          const prof = window._publicProfileRecord;
+          if (prof.user_id && prof.user_id === session.user.id && !window._myProfileRecord) {
+            enableOwnerMode(prof, session);
+          }
         }
       }
     });
@@ -170,7 +177,216 @@ async function resolvePublicProfile() {
     window.history.replaceState({}, '', canonicalPath);
   }
 
+  // Detect if the signed-in user is viewing their own profile → enable owner mode
+  try {
+    const session = _getAuthSession ? await _getAuthSession() : null;
+    if (session && profile.user_id && profile.user_id === session.user.id) {
+      enableOwnerMode(profile, session);
+    }
+  } catch (e) { console.warn('Owner-mode check failed:', e); }
+
   return profile;
+}
+
+// ─── Owner Mode (viewing own profile at /{slug}) ──────────────────────────────
+function enableOwnerMode(profile, session) {
+  window._myProfileRecord = profile;
+
+  // Replace hero action buttons with owner controls
+  const heroActions = document.querySelector('.profile-hero__actions');
+  if (heroActions) {
+    heroActions.innerHTML = `
+      <button class="btn btn--primary" onclick="openEditProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
+      <button class="btn btn--secondary" onclick="openRequestReviewModal()"><i class="fas fa-paper-plane"></i> Ask for Reviews</button>
+      <button class="btn btn--ghost" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share Score</button>
+      <button class="btn btn--ghost" onclick="shareProfileUrl()"><i class="fas fa-link"></i> Copy Link</button>
+    `;
+  }
+
+  // Inject Edit Profile modal if not already present
+  if (!document.getElementById('editProfileModal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="editProfileModal" onclick="closeEditProfileModal(event)">
+        <div class="modal edit-profile-modal">
+          <button class="auth-modal__close" onclick="closeEditProfileModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+          <div class="edit-profile-modal__header">
+            <h2><i class="fas fa-user-pen" style="color:var(--purple); margin-right:8px;"></i> Edit Profile</h2>
+            <p>Update your public profile. Changes are visible to everyone on Peepd.</p>
+          </div>
+          <form id="editProfileForm" onsubmit="saveProfileEdits(event)" novalidate>
+            <div class="ep-field-row">
+              <div class="ep-field"><label class="ep-label" for="epName">Full Name <span style="color:var(--purple);">*</span></label><input type="text" id="epName" class="social-input" placeholder="Jane Smith" autocomplete="name" /></div>
+              <div class="ep-field"><label class="ep-label" for="epTitle">Job Title</label><input type="text" id="epTitle" class="social-input" placeholder="Product Designer" /></div>
+            </div>
+            <div class="ep-field-row">
+              <div class="ep-field"><label class="ep-label" for="epCompany">Company</label><input type="text" id="epCompany" class="social-input" placeholder="Acme Inc." /></div>
+              <div class="ep-field"><label class="ep-label" for="epLocation">Location</label><input type="text" id="epLocation" class="social-input" placeholder="San Francisco, CA" /></div>
+            </div>
+            <div class="ep-field"><label class="ep-label" for="epBio">Bio <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(max 280 chars)</span></label><textarea id="epBio" class="ep-textarea" placeholder="Tell people a bit about yourself…" maxlength="280"></textarea></div>
+            <div class="ep-field-row">
+              <div class="ep-field"><label class="ep-label" for="epWebsite">Website</label><input type="url" id="epWebsite" class="social-input" placeholder="https://yoursite.com" /></div>
+              <div class="ep-field"><label class="ep-label" for="epIndustry">Industry</label><select id="epIndustry" class="social-input"><option value="">&#8212; Select industry &#8212;</option><option value="Technology">Technology</option><option value="Finance">Finance</option><option value="Healthcare">Healthcare</option><option value="Marketing">Marketing</option><option value="Education">Education</option><option value="Legal">Legal</option><option value="Design">Design</option><option value="Engineering">Engineering</option><option value="Sales">Sales</option><option value="Human Resources">Human Resources</option><option value="Operations">Operations</option><option value="Media &amp; Entertainment">Media &amp; Entertainment</option><option value="Real Estate">Real Estate</option><option value="Other">Other</option></select></div>
+            </div>
+            <div class="ep-field"><label class="ep-label">Avatar Color</label><div class="avatar-picker" id="avatarPicker"><button type="button" class="avatar-pick avatar-1" data-class="avatar-1" title="Orange / Amber"></button><button type="button" class="avatar-pick avatar-2" data-class="avatar-2" title="Green / Cyan"></button><button type="button" class="avatar-pick avatar-3" data-class="avatar-3" title="Red / Orange"></button><button type="button" class="avatar-pick avatar-4" data-class="avatar-4" title="Orange / Pink"></button><button type="button" class="avatar-pick avatar-5" data-class="avatar-5" title="Cyan / Teal"></button><button type="button" class="avatar-pick avatar-6" data-class="avatar-6" title="Amber / Red"></button></div></div>
+            <div id="epError" class="ep-error" style="display:none;"></div>
+            <button type="submit" class="btn btn--primary" style="width:100%;" id="epSaveBtn"><i class="fas fa-check"></i> Save Changes</button>
+          </form>
+        </div>
+      </div>
+    `);
+  }
+
+  // Inject Dispute modal if not already present
+  if (!document.getElementById('disputeModal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="disputeModal" onclick="closeDisputeModal(event)">
+        <div class="modal dispute-modal">
+          <button class="auth-modal__close" onclick="closeDisputeModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+          <div id="disputeStateForm">
+            <div class="dispute-modal__header"><div class="dispute-modal__icon"><i class="fas fa-flag"></i></div><h2>Dispute This Review</h2><p>Tell us why this review is inaccurate or violates our guidelines. Our team reviews disputes within 48 hours.</p></div>
+            <form id="disputeForm" onsubmit="submitDisputeForm(event)" novalidate>
+              <div class="ep-field"><label class="ep-label" for="disputeReason">Reason <span style="color:var(--purple);">*</span></label><select id="disputeReason" class="social-input"><option value="">— Select a reason —</option><option value="false_info">False or inaccurate information</option><option value="mistaken_identity">Wrong person / mistaken identity</option><option value="harassment">Harassment or bullying</option><option value="spam">Spam or fake review</option><option value="privacy">Privacy violation</option><option value="other">Other</option></select></div>
+              <div class="ep-field"><label class="ep-label" for="disputeDetails">Additional Context <span style="color:var(--text-muted); font-weight:400; text-transform:none;">(optional)</span></label><textarea id="disputeDetails" class="ep-textarea" placeholder="Provide any details that help our team review this…" maxlength="500" style="min-height:80px;"></textarea></div>
+              <div id="disputeError" class="ep-error" style="display:none;"></div>
+              <button type="submit" class="btn btn--primary" style="width:100%;" id="disputeSubmitBtn"><i class="fas fa-flag"></i> Submit Dispute</button>
+            </form>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:12px; text-align:center;"><i class="fas fa-lock"></i> Disputes are fully confidential. We never reveal who disputed a review.</p>
+          </div>
+          <div id="disputeStateSuccess" style="display:none; text-align:center; padding:8px 0;"><div class="dispute-success-icon"><i class="fas fa-circle-check"></i></div><h2 style="margin-bottom:10px;">Dispute Submitted</h2><p style="color:var(--text-secondary); margin-bottom:24px;">We've received your dispute and will review it within 48 hours. You'll be notified if action is taken.</p><button class="btn btn--secondary" style="width:100%;" onclick="closeDisputeModal()">Close</button></div>
+        </div>
+      </div>
+    `);
+  }
+
+  // Inject Request Review modal if not already present
+  if (!document.getElementById('requestReviewModal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="requestReviewModal" onclick="closeRequestReviewModal(event)">
+        <div class="modal rr-modal">
+          <button class="auth-modal__close" onclick="closeRequestReviewModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+          <div class="rr-modal__icon"><i class="fas fa-paper-plane"></i></div>
+          <h2>Ask for Reviews</h2>
+          <p>Share your profile with people who know you. Their honest reviews raise your Peepd Score.</p>
+          <div class="rr-url-box"><input type="text" id="rrProfileUrl" class="rr-url-input" readonly placeholder="Loading your link…" /><button class="rr-copy-btn" onclick="copyReviewLink()" id="rrCopyBtn" title="Copy link"><i class="fas fa-copy"></i></button></div>
+          <div class="rr-channels">
+            <button class="rr-channel-btn rr-channel-btn--sms" onclick="requestReviewVia('sms')"><i class="fas fa-comment-sms"></i><span>Text / iMessage</span></button>
+            <button class="rr-channel-btn rr-channel-btn--email" onclick="requestReviewVia('email')"><i class="fas fa-envelope"></i><span>Email</span></button>
+            <button class="rr-channel-btn rr-channel-btn--linkedin" onclick="requestReviewVia('linkedin')"><i class="fab fa-linkedin"></i><span>LinkedIn</span></button>
+            <button class="rr-channel-btn rr-channel-btn--email" onclick="requestReviewVia('copy')"><i class="fas fa-copy"></i><span>Copy Message</span></button>
+          </div>
+          <p class="rr-modal__note"><i class="fas fa-shield-halved"></i> Only people who know you can review you — self-reviews are blocked.</p>
+        </div>
+      </div>
+    `);
+  }
+
+  // Inject Share Score modal if not already present
+  if (!document.getElementById('shareScoreModal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="shareScoreModal" onclick="closeShareScoreModal(event)">
+        <div class="modal score-share-modal">
+          <button class="auth-modal__close" onclick="closeShareScoreModal()" aria-label="Close"><i class="fas fa-xmark"></i></button>
+          <div class="rr-modal__icon"><i class="fas fa-sparkles"></i></div>
+          <h2>Share Your Peep'd Score</h2>
+          <p>Pick who you're sending it to, then copy or send a polished message with your live score and public profile.</p>
+          <div class="score-share__summary"><div class="score-share__stat"><span class="score-share__label">Score</span><strong id="ssScoreValue">—</strong></div><div class="score-share__stat"><span class="score-share__label">Tier</span><strong id="ssTierValue">—</strong></div><div class="score-share__stat"><span class="score-share__label">Reviews</span><strong id="ssReviewValue">—</strong></div></div>
+          <div class="score-share__audiences">
+            <button class="score-audience-btn active" data-audience="boss" onclick="selectScoreAudience('boss')"><i class="fas fa-briefcase"></i><span>Boss</span></button>
+            <button class="score-audience-btn" data-audience="recruiter" onclick="selectScoreAudience('recruiter')"><i class="fas fa-magnifying-glass"></i><span>Recruiter</span></button>
+            <button class="score-audience-btn" data-audience="date" onclick="selectScoreAudience('date')"><i class="fas fa-heart"></i><span>Date</span></button>
+            <button class="score-audience-btn" data-audience="client" onclick="selectScoreAudience('client')"><i class="fas fa-handshake"></i><span>Client</span></button>
+          </div>
+          <div class="score-share__context" id="ssAudienceTitle">Sharing with a boss</div>
+          <div class="rr-url-box"><input type="text" id="ssProfileUrl" class="rr-url-input" readonly placeholder="Loading your link…" /><button class="rr-copy-btn" onclick="copyScoreShareLink()" id="ssLinkCopyBtn" title="Copy profile link"><i class="fas fa-link"></i></button></div>
+          <label class="ep-label" for="ssMessagePreview" style="text-align:left; display:block; margin-bottom:8px;">Message Preview</label>
+          <textarea id="ssMessagePreview" class="ep-textarea score-share__preview" readonly></textarea>
+          <div class="rr-channels score-share__channels">
+            <button class="rr-channel-btn rr-channel-btn--email" onclick="shareScoreVia('copy')"><i class="fas fa-copy"></i><span>Copy Message</span></button>
+            <button class="rr-channel-btn rr-channel-btn--sms" onclick="shareScoreVia('sms')"><i class="fas fa-comment-sms"></i><span>Text / iMessage</span></button>
+            <button class="rr-channel-btn rr-channel-btn--email" onclick="shareScoreVia('email')"><i class="fas fa-envelope"></i><span>Email</span></button>
+            <button class="rr-channel-btn rr-channel-btn--linkedin" onclick="shareScoreVia('linkedin')"><i class="fab fa-linkedin"></i><span>LinkedIn</span></button>
+          </div>
+          <p class="rr-modal__note"><i class="fas fa-shield-halved"></i> Your message always uses your live public profile URL and current Peep'd score.</p>
+        </div>
+      </div>
+    `);
+  }
+
+  // Pre-fill edit form
+  const ep = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  ep('epName',     profile.full_name);
+  ep('epTitle',    profile.title);
+  ep('epCompany',  profile.company);
+  ep('epLocation', profile.location);
+  ep('epBio',      profile.bio);
+  ep('epWebsite',  profile.website);
+  ep('epIndustry', profile.industry);
+
+  // Load user's own reviews in the reviews tab
+  if (_getReviewsForProfile) {
+    _getReviewsForProfile(profile.id).then(reviews => {
+      renderOwnerReviews(reviews);
+    }).catch(e => console.warn('Owner reviews load failed:', e));
+  }
+}
+
+function renderOwnerReviews(reviews) {
+  const panel = document.getElementById('tab-reviews');
+  if (!panel) return;
+
+  if (!reviews || reviews.length === 0) {
+    panel.innerHTML = `
+      <div style="text-align:center; padding:48px 24px;">
+        <i class="fas fa-star" style="font-size:2.5rem; color:var(--border-accent); margin-bottom:12px;"></i>
+        <h4 style="margin-bottom:8px;">No reviews yet</h4>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Start collecting signal by inviting people who genuinely know you.</p>
+        <button class="btn btn--primary" onclick="openRequestReviewModal()"><i class="fas fa-paper-plane"></i> Ask for Reviews</button>
+      </div>`;
+    const countEl = document.querySelector('[data-tab="reviews"] .tab-count');
+    if (countEl) countEl.textContent = '0';
+    return;
+  }
+
+  const catKeys   = ['rating_work_ethic','rating_reliability','rating_honesty','rating_character','rating_intelligence','rating_social_skills'];
+  const catLabels = ['Work Ethic','Reliability','Honesty','Character','Intelligence','Social Skills'];
+
+  const cards = reviews.map(r => {
+    const rated    = catKeys.filter(k => r[k] != null);
+    const avg      = rated.length ? rated.reduce((s,k) => s + r[k], 0) / rated.length : null;
+    const starFull = avg ? Math.round(avg) : 0;
+    const stars    = '\u2605'.repeat(starFull) + '\u2606'.repeat(5 - starFull);
+    const rel      = r.relationship ? r.relationship.charAt(0).toUpperCase() + r.relationship.slice(1) : 'Reviewer';
+    const cats     = rated.slice(0,3).map(k => '<span class="cat-rating"><span class="cat-label">' + catLabels[catKeys.indexOf(k)] + '</span><span class="cat-val">' + r[k] + '.0</span></span>').join('');
+    const text     = r.review_text ? r.review_text.replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    let html = '<div class="review-card">';
+    html += '<div class="review-card__header">';
+    html += '<div class="avatar avatar-2" style="width:40px;height:40px;font-size:0.8rem;flex-shrink:0;">?</div>';
+    html += '<div class="review-card__reviewer"><div class="review-card__name">Anonymous Reviewer</div><div class="review-card__meta">' + rel + ' \u00b7 ' + timeAgo(r.created_at) + '</div></div>';
+    html += '<div class="review-card__stars"><span class="stars-display">' + stars + '</span>';
+    if (avg) html += '<span style="font-size:0.8rem;color:var(--text-muted);margin-left:4px;">' + avg.toFixed(1) + '</span>';
+    html += '</div></div>';
+    if (text) html += '<p class="review-card__text">&ldquo;' + text + '&rdquo;</p>';
+    if (cats) html += '<div class="review-card__cats">' + cats + '</div>';
+    html += '<div class="review-card__vote-dispute">';
+    html += '<div class="review-card__vote"><span style="font-size:0.78rem;color:var(--text-muted);">Accurate?</span>';
+    html += '<button class="vote-btn vote-yes" onclick="castVote(this,\'yes\')"><i class="fas fa-thumbs-up"></i> Yes</button>';
+    html += '<button class="vote-btn vote-no" onclick="castVote(this,\'no\')"><i class="fas fa-thumbs-down"></i> No</button></div>';
+    html += '<button class="btn-dispute-review" onclick="openDisputeModal(\'' + r.id + '\')"><i class="fas fa-flag"></i> Dispute</button>';
+    html += '</div></div>';
+    return html;
+  }).join('');
+
+  panel.innerHTML = '<div class="reviews-header"><h3 style="font-family:\'Sora\',sans-serif; font-size:1rem; font-weight:700;">Your Reviews</h3></div>' + cards;
+
+  const countEl = document.querySelector('[data-tab="reviews"] .tab-count');
+  if (countEl) countEl.textContent = reviews.length;
+
+  // Animate accuracy meters
+  setTimeout(() => {
+    panel.querySelectorAll('.accuracy-meter__fill[data-width]').forEach(el => {
+      el.style.width = el.dataset.width + '%';
+    });
+  }, 300);
 }
 
 function applyPublicProfileData(profile) {
@@ -1413,11 +1629,8 @@ function renderScoreShareComposer() {
 function openShareScoreModal() {
   const modal = document.getElementById('shareScoreModal');
   if (!modal) {
-    if (window.location.pathname !== '/my-profile') {
-      window.location.href = '/my-profile';
-    } else {
-      shareProfileUrl();
-    }
+    // If the modal isn't on this page, fall back to sharing the profile URL
+    shareProfileUrl();
     return;
   }
   window._scoreShareAudience = 'boss';
@@ -1612,9 +1825,13 @@ async function initNavUserMenu() {
     ? '<i class="fab fa-linkedin" style="color:#0A66C2;font-size:0.85rem;"></i>'
     : '<i class="fas fa-user" style="font-size:0.85rem;"></i>';
 
-  // Ensure profile exists (create silently if first sign-in)
+  // Ensure profile exists (create silently if first sign-in) & get slug for links
+  let profilePath = '/profile';
   if (_getOrCreateMyProfile) {
-    _getOrCreateMyProfile(user).catch(() => {});
+    try {
+      const myProfile = await _getOrCreateMyProfile(user);
+      if (myProfile) profilePath = buildProfilePath(myProfile);
+    } catch (e) { console.warn('Profile fetch for nav:', e); }
   }
 
   actionsEl.outerHTML = `
@@ -1632,8 +1849,8 @@ async function initNavUserMenu() {
             <div class="nav__user-dropdown-email">${providerIcon} ${user.email || provider}</div>
           </div>
         </div>
-        <a href="/my-profile" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
-        <a href="/my-profile" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='/my-profile';"><i class="fas fa-pen"></i> Edit Profile</a>
+        <a href="${profilePath}" class="nav__dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
+        <a href="${profilePath}" class="nav__dropdown-item" onclick="event.preventDefault();window.location.href='${profilePath}';"><i class="fas fa-pen"></i> Edit Profile</a>
         <a href="/write-review" class="nav__dropdown-item"><i class="fas fa-pen-to-square"></i> Write a Review</a>
         <button class="nav__dropdown-item" onclick="openShareScoreModal()"><i class="fas fa-sparkles"></i> Share My Score</button>
         <button class="nav__dropdown-item" onclick="shareProfileUrl()"><i class="fas fa-share-nodes"></i> Share My Profile</button>
@@ -1822,13 +2039,13 @@ async function saveProfileEdits(e) {
       }
       // Update nav avatar initials too
       document.querySelectorAll('.nav__user-avatar').forEach(el => { if (!el.querySelector('img')) el.textContent = updated.initials; });
-      // Website
+      // Website (my-profile elements)
       const wsEl = g('mpWebsite'); const wsSpan = g('mpWebsiteSpan');
       if (wsSpan) {
         if (updated.website) { if (wsEl) { wsEl.href = updated.website; wsEl.textContent = updated.website; } wsSpan.style.display = ''; }
         else wsSpan.style.display = 'none';
       }
-      // Industry
+      // Industry (my-profile elements)
       const indEl = g('mpIndustry'); const indSpan = g('mpIndustrySpan');
       if (indSpan) {
         if (updated.industry) { if (indEl) indEl.textContent = updated.industry; indSpan.style.display = ''; }
@@ -1839,6 +2056,16 @@ async function saveProfileEdits(e) {
       if (wsAbEl) wsAbEl.innerHTML = updated.website
         ? `<a href="${updated.website}" target="_blank" rel="noopener" style="color:var(--purple);word-break:break-all;">${updated.website}</a>`
         : '—';
+      // Also refresh the public profile hero if on the /{slug} profile page
+      if (window._publicProfileRecord) {
+        window._publicProfileRecord = updated;
+        applyPublicProfileData(updated);
+        // Update URL if slug changed
+        const newPath = buildProfilePath(updated);
+        if (newPath && window.location.pathname !== newPath) {
+          window.history.replaceState({}, '', newPath);
+        }
+      }
     }
     closeEditProfileModal();
     showToast('Profile updated!', 'success');
@@ -1849,14 +2076,13 @@ async function saveProfileEdits(e) {
   }
 }
 
-// ─── My Profile Page ──────────────────────────────────────────────────────────
+// ─── My Profile Page — now redirects to /{slug} ──────────────────────────────
 async function loadMyProfilePage() {
   const content = document.getElementById('myProfileContent');
   if (!content) return; // not on my-profile.html
 
   const loading   = document.getElementById('myProfileLoading');
   const noSession = document.getElementById('myProfileNoSession');
-  const body      = document.getElementById('myProfileBody');
 
   let session;
   try { session = _getAuthSession ? await _getAuthSession() : null; } catch { session = null; }
@@ -1867,7 +2093,21 @@ async function loadMyProfilePage() {
     return;
   }
 
-  // Hide the "not signed in" state in case this is a re-call after OAuth redirect
+  // Get the user's profile and redirect to their slug-based URL
+  try {
+    const profile = _getOrCreateMyProfile ? await _getOrCreateMyProfile(session.user) : null;
+    if (profile) {
+      const path = buildProfilePath(profile);
+      if (path && path !== '/profile') {
+        window.location.replace(path);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Profile redirect failed:', e);
+  }
+
+  // Fallback: show the old my-profile page if redirect fails
   if (noSession) noSession.style.display = 'none';
 
   let profile;
@@ -2310,7 +2550,7 @@ async function connectWithOAuth(provider) {
   }
   try {
     // On write-review page: stay on current page so the social gate can process the callback.
-    // On all other pages: redirect to My Profile after successful sign-in.
+    // On all other pages: redirect to home (will auto-redirect to /{slug} once profile is resolved).
     const redirectTo = document.getElementById('socialGate')
       ? null
       : `${window.location.origin}/my-profile`;
