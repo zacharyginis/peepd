@@ -1078,7 +1078,7 @@ section           { padding: 100px 0; }
   line-height: 1.55;
 }
 
-/* ─── ID Verification Gate (Didit) ──────────────────────────────────── */
+/* ─── ID Verification Gate (Persona) ──────────────────────────────────── */
 .id-gate { z-index: 1100; } /* above social gate */
 
 .id-gate__icon {

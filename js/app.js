@@ -15,7 +15,7 @@ let _getProfile, _getTopProfiles, _searchProfiles,
     _getSocialConnections, _saveSocialConnection,
   _getProfileBySlug,
     _signInWithOAuthProvider, _getAuthSession,
-    _createDiditSession, _verifyDiditSession,
+    _createPersonaInquiry, _verifyPersonaInquiry,
     _fetchLinkedInRecommendations,
     _saveWaitlistEntry, _saveJobApplication,
     _signOut, _getOrCreateMyProfile, _updateMyProfile, _submitReviewDispute, _sendReviewEmails;
@@ -48,8 +48,8 @@ async function loadSupabase() {
     _saveSocialConnection    = mod.saveSocialConnection;
     _signInWithOAuthProvider = mod.signInWithOAuthProvider;
     _getAuthSession          = mod.getAuthSession;
-    _createDiditSession           = mod.createDiditSession;
-    _verifyDiditSession           = mod.verifyDiditSession;
+    _createPersonaInquiry        = mod.createPersonaInquiry;
+    _verifyPersonaInquiry         = mod.verifyPersonaInquiry;
     _fetchLinkedInRecommendations = mod.fetchLinkedInRecommendations;
     _saveWaitlistEntry            = mod.saveWaitlistEntry;
     _saveJobApplication           = mod.saveJobApplication;
@@ -2373,7 +2373,7 @@ function renderMyReviews(reviews) {
 
 function g(id) { return document.getElementById(id); }
 
-// ─── ID Verification Gate (Didit) ───────────────────────────────────────────────────
+// ─── ID Verification Gate (Persona) ───────────────────────────────────────────────────
 const ID_SESSION_KEY = 'peepd_id_session';
 
 function getIdSession() {
@@ -2400,7 +2400,7 @@ function showIdGateState(state) {
   });
 }
 
-/** On page load: check URL params (Didit callback) or existing session. */
+/** On page load: check URL params (Persona callback) or existing session. */
 async function initIdGate() {
   const gate = document.getElementById('idGate');
   if (!gate) return;
@@ -2412,36 +2412,25 @@ async function initIdGate() {
     return;
   }
 
-  // Didit redirected back with ?verificationSessionId=xxx&status=Approved
+  // Persona redirects back with ?inquiry-id=inq_xxx
   const params = new URLSearchParams(window.location.search);
-  const diditSessionId = params.get('verificationSessionId');
-  const diditStatus    = params.get('status');
+  const personaInquiryId = params.get('inquiry-id');
 
-  if (diditSessionId) {
+  if (personaInquiryId) {
     // Clean the URL so a refresh doesn't re-trigger
     const cleanUrl = window.location.pathname + (window.location.search
-      .replace(/[?&]verificationSessionId=[^&]*/g, '')
-      .replace(/[?&]status=[^&]*/g, '')
+      .replace(/[?&]inquiry-id=[^&]*/g, '')
       .replace(/^&/, '?') || '');
     history.replaceState(null, '', cleanUrl);
 
-    if (diditStatus === 'Approved') {
-      // Optimistic: trust callback, but also verify server-side
-      showIdGateState('Verifying');
-      gate.classList.remove('hidden');
-      await confirmIdSession(diditSessionId);
-    } else {
-      // Declined or In Review
-      showIdGateState('Declined');
-      const descEl = document.getElementById('igDeclinedDesc');
-      if (descEl) descEl.textContent = `Verification returned status: "${diditStatus}". Please try again with a valid government ID.`;
-      gate.classList.remove('hidden');
-    }
+    // Verify server-side
+    showIdGateState('Verifying');
+    gate.classList.remove('hidden');
+    await confirmIdSession(personaInquiryId);
     return;
   }
 
   // Not yet verified — gate stays hidden until the user tries to submit a review.
-  // showIdGateState('Default') is intentionally NOT called here.
   showIdGateState('Default'); // pre-load the correct state; gate remains hidden
 }
 
@@ -2451,32 +2440,32 @@ async function startIdVerification() {
   if (!gate) return;
   showIdGateState('Loading');
 
-  if (!_createDiditSession) {
-    showToast('ID verification service is not configured yet. Set DIDIT_API_KEY and DIDIT_WORKFLOW_ID in Supabase.', 'error');
+  if (!_createPersonaInquiry) {
+    showToast('ID verification service is not configured yet. Set PERSONA_API_KEY and PERSONA_TEMPLATE_ID in Supabase.', 'error');
     showIdGateState('Default');
     return;
   }
 
   try {
-    const reviewerSessionId = getOrCreateReviewerSessionId();
-    const { url, session_id } = await _createDiditSession(reviewerSessionId);
+    const referenceId = getOrCreateReviewerSessionId();
+    const { url, inquiry_id } = await _createPersonaInquiry(referenceId);
     // Save pending state
-    saveIdSession({ session_id, verified: false, started_at: new Date().toISOString() });
-    // Redirect to Didit hosted verification page
+    saveIdSession({ inquiry_id, verified: false, started_at: new Date().toISOString() });
+    // Redirect to Persona hosted verification page
     window.location.href = url;
   } catch (e) {
-    console.error('Didit session creation failed:', e);
+    console.error('Persona inquiry creation failed:', e);
     showToast('Could not start ID verification: ' + e.message, 'error');
     showIdGateState('Default');
   }
 }
 
-/** Verify the returned session ID against Didit's API */
-async function confirmIdSession(diditSessionId) {
+/** Verify the returned inquiry ID against Persona's API */
+async function confirmIdSession(personaInquiryId) {
   const gate = document.getElementById('idGate');
-  if (!_verifyDiditSession) {
+  if (!_verifyPersonaInquiry) {
     // Can't verify server-side — trust the URL param (dev mode)
-    saveIdSession({ session_id: diditSessionId, verified: true, verified_at: new Date().toISOString() });
+    saveIdSession({ inquiry_id: personaInquiryId, verified: true, verified_at: new Date().toISOString() });
     showIdGateState('Approved');
     setTimeout(() => {
       if (gate) { gate.style.transition = 'opacity 0.4s'; gate.style.opacity = '0'; }
@@ -2487,9 +2476,9 @@ async function confirmIdSession(diditSessionId) {
   }
 
   try {
-    const result = await _verifyDiditSession(diditSessionId);
+    const result = await _verifyPersonaInquiry(personaInquiryId);
     if (result.verified) {
-      saveIdSession({ session_id: diditSessionId, verified: true, verified_at: new Date().toISOString() });
+      saveIdSession({ inquiry_id: personaInquiryId, verified: true, verified_at: new Date().toISOString() });
       showIdGateState('Approved');
       showToast('Identity verified! You can now submit reviews.', 'success');
       setTimeout(() => {
@@ -2502,7 +2491,7 @@ async function confirmIdSession(diditSessionId) {
       showIdGateState('Declined');
     }
   } catch (e) {
-    console.error('Didit verify error:', e);
+    console.error('Persona verify error:', e);
     const descEl = document.getElementById('igDeclinedDesc');
     if (descEl) descEl.textContent = 'Could not confirm your verification result. Please try again.';
     showIdGateState('Declined');

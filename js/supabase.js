@@ -261,7 +261,7 @@ export async function getAuthSession() {
   return data.session;
 }
 
-// ─── Didit ID Verification ───────────────────────────────────────────────────
+// ─── Persona ID Verification ─────────────────────────────────────────────────
 
 const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
 
@@ -290,23 +290,23 @@ async function fireEmail(type, payload) {
 }
 
 /**
- * Create a Didit verification session via the Edge Function.
- * Returns { session_id, url } — redirect the user to `url`.
- * @param {string} reviewerSessionId  UUID stored in localStorage
+ * Create a Persona inquiry via the Edge Function.
+ * Returns { inquiry_id, url } — redirect the user to `url`.
+ * @param {string} referenceId  UUID stored in localStorage
  */
-export async function createDiditSession(reviewerSessionId) {
-  const res = await fetch(`${EDGE_BASE}/didit-create-session`, {
+export async function createPersonaInquiry(referenceId) {
+  const res = await fetch(`${EDGE_BASE}/persona-create-inquiry`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey':        SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
     },
-    body: JSON.stringify({ reviewer_session_id: reviewerSessionId }),
+    body: JSON.stringify({ reference_id: referenceId }),
   });
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`createDiditSession failed (${res.status}): ${txt}`);
+    throw new Error(`createPersonaInquiry failed (${res.status}): ${txt}`);
   }
   return res.json();
 }
@@ -490,23 +490,23 @@ export async function submitReviewDispute(reviewId, reason, details) {
 }
 
 /**
- * Verify a Didit session result via the Edge Function.
+ * Verify a Persona inquiry result via the Edge Function.
  * Returns { verified: boolean, status: string }
- * @param {string} sessionId  verificationSessionId from the Didit callback URL
+ * @param {string} inquiryId  inquiry-id from the Persona callback URL
  */
-export async function verifyDiditSession(sessionId) {
-  const res = await fetch(`${EDGE_BASE}/didit-verify-session`, {
+export async function verifyPersonaInquiry(inquiryId) {
+  const res = await fetch(`${EDGE_BASE}/persona-verify-inquiry`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey':        SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
     },
-    body: JSON.stringify({ session_id: sessionId }),
+    body: JSON.stringify({ inquiry_id: inquiryId }),
   });
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`verifyDiditSession failed (${res.status}): ${txt}`);
+    throw new Error(`verifyPersonaInquiry failed (${res.status}): ${txt}`);
   }
   return res.json();
 }

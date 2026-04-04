@@ -112,7 +112,7 @@
       <h3 style="font-size:1rem; font-weight:700; margin:20px 0 8px; color:var(--text-primary);">2c. Information from Third Parties</h3>
       <ul>
         <li><strong>LinkedIn</strong> — when you authenticate with LinkedIn we receive your name, email address, profile photo, and connection count via the LinkedIn OIDC API.</li>
-        <li><strong>Didit Identity Verification</strong> — when you complete ID verification we receive the verification outcome (approved/declined) and a session reference from our third-party KYC provider, Didit. We do not store images of your government-issued ID or your biometric data; those remain with Didit under their own privacy practices.</li>
+        <li><strong>Persona Identity Verification</strong> — when you complete ID verification we receive the verification outcome (approved/declined) and an inquiry reference from our third-party KYC provider, Persona. We do not store images of your government-issued ID or your biometric data; those remain with Persona under their own privacy practices.</li>
       </ul>
 
       <h2 id="s3">3. How We Use Your Information</h2>
@@ -141,18 +141,18 @@
       <p>You may disconnect your social account at any time from your profile settings, though this will remove your ability to submit new reviews.</p>
 
       <h2 id="s5">5. Identity Verification</h2>
-      <p>Peepd uses <a href="https://didit.me" target="_blank" rel="noopener">Didit</a> as our identity verification provider. During verification:</p>
+      <p>Peepd uses <a href="https://withpersona.com" target="_blank" rel="noopener">Persona</a> as our identity verification provider. During verification:</p>
       <ul>
-        <li>You will be redirected to a Didit-hosted page to upload a government-issued ID and complete a liveness check.</li>
-        <li>Didit processes and stores your biometric data and ID document images in accordance with their <a href="https://didit.me/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</li>
-        <li>Peepd only receives the verification outcome (Approved or Declined) and a session identifier. We store this outcome in our database linked to an anonymous reviewer session ID.</li>
+        <li>You will be redirected to a Persona-hosted page to upload a government-issued ID and complete a liveness check.</li>
+        <li>Persona processes and stores your biometric data and ID document images in accordance with their <a href="https://withpersona.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</li>
+        <li>Peepd only receives the verification outcome (Approved or Declined) and an inquiry identifier. We store this outcome in our database linked to an anonymous reviewer session ID.</li>
         <li>We do not share verification outcomes publicly on your profile; they are used only for internal trust and safety purposes.</li>
       </ul>
 
       <h2 id="s6">6. How We Share Your Information</h2>
       <p>We share personal information only in the following limited circumstances:</p>
       <ul>
-        <li><strong>Service providers</strong> — Supabase (database and authentication infrastructure), Didit (identity verification), and similar vendors who process data on our behalf under confidentiality obligations.</li>
+        <li><strong>Service providers</strong> — Supabase (database and authentication infrastructure), Persona (identity verification), and similar vendors who process data on our behalf under confidentiality obligations.</li>
         <li><strong>Other users</strong> — your public profile information and any reviews you submit are visible to other Platform users. Your real name and photo are displayed alongside reviews you write, so that accountability is maintained.</li>
         <li><strong>Legal requirements</strong> — we may disclose information if required by law, court order, or to protect the rights, property, or safety of Peepd, our users, or the public.</li>
         <li><strong>Business transfers</strong> — in connection with a merger, acquisition, or sale of assets, your information may be transferred to the acquiring entity.</li>
